@@ -273,7 +273,7 @@ def medias_commons(noms_fichiers):
             est_image = (info.get("mime") or "").startswith("image/")
             resultat[nom] = {
                 "fichier": nom,
-                "url": info.get("thumburl") if est_image and info.get("thumburl") else info["url"],
+                "url": url_propre(info.get("thumburl") if est_image and info.get("thumburl") else info["url"]),
                 "page": info.get("descriptionurl"),
                 "type": info.get("mime"),
                 "auteur": nettoyer_html(meta.get("Artist", {}).get("value")),
@@ -297,6 +297,12 @@ def sons_par_recherche(nom_scientifique):
         srsearch=f'intitle:"{nom_scientifique}" filetype:audio',
     )
     return [r["title"].split(":", 1)[1] for r in reponse["query"]["search"]]
+
+
+def url_propre(url):
+    """Adresse stable d'un média : domaine upload.wikimedia.org, sans paramètres de suivi."""
+    url = url.split("?", 1)[0]
+    return url.replace("https://thumb.wikimedia.org/", "https://upload.wikimedia.org/")
 
 
 def cle_commons(nom):
