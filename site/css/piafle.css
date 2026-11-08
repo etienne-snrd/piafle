@@ -1,46 +1,45 @@
-/* Piafle : direction « Mésange bleue ».
-   Palette prise sur la mésange bleue et l'œuf de grive. */
+/* Piafle : pixel art 8-bit, univers nature et bird-watching.
+   Le décor (js/decor.js) occupe tout l'écran ; la partie tient dans un panneau
+   de papier encadré de bois, au centre, là où le paysage reste dégagé. */
 
 :root {
-  --coquille: #E4EFEA;   /* fond, œuf de grive */
-  --bandeau: #1C2B4B;    /* texte, trait de l'œil */
-  --calotte: #2468C7;    /* actions, focus */
-  --plastron: #F4CF3C;   /* victoire, œuf éclos */
-  --lichen: #6B7D2C;     /* indices */
-  --joue: #FFFFFF;       /* champ, passe-partout */
+  --bois: #4A3220;          /* cadres et panneaux */
+  --bois-clair: #6B4A2E;
+  --bois-sombre: #2E1F14;
+  --papier: #F2E8C9;        /* fond de la partie */
+  --papier-fonce: #E3D5AC;
+  --encre: #2B1E14;         /* texte */
+  --encre-douce: rgb(43 30 20 / 0.66);
+  --encre-trait: rgb(43 30 20 / 0.18);
+  --mousse: #8DBA4E;        /* actions */
+  --mousse-fonce: #5E8A2E;
+  --plastron: #F4CF3C;      /* victoire, œuf éclos */
+  --lichen: #5E7024;        /* indices */
+  --nuit: #1B2633;          /* ombre portée des pixels */
 
-  --bandeau-doux: rgb(28 43 75 / 0.62);
-  --bandeau-trait: rgb(28 43 75 / 0.16);
-  --coquille-fonce: #CFE2DA;
+  --affiche: "Jersey 10", "Pixelify Sans", monospace;
+  --texte: "Pixelify Sans", system-ui, sans-serif;
 
-  --serif: "Literata", Georgia, serif;
-  --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
-
-  /* Gamme de Bringhurst */
-  --t-14: 0.875rem;
-  --t-16: 1rem;
-  --t-21: 1.3125rem;
-  --t-28: 1.75rem;
-  --t-36: 2.25rem;
-  --t-48: 3rem;
-  --t-72: 4.5rem;
-
-  --colonne: 26.25rem;
+  --colonne: 30rem;
   --gouttiere: 1rem;
+  --ombre: 0 4px 0 var(--nuit), 4px 0 0 var(--nuit), 4px 4px 0 var(--nuit);
   --lent: 1100ms cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
 
 [hidden] { display: none !important; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; background: #5FA7DA; }
+html[data-moment="aube"] { background: #8E73A6; }
+html[data-moment="soir"] { background: #7B4F8E; }
+html[data-moment="nuit"] { background: #16204A; }
 
 body {
   margin: 0;
-  background: var(--coquille);
-  color: var(--bandeau);
-  font: 400 var(--t-16)/1.45 var(--sans);
+  color: var(--encre);
+  font: 400 1rem/1.45 var(--texte);
   min-height: 100dvh;
 }
 
@@ -50,7 +49,7 @@ img { display: block; max-width: 100%; }
 button, input { font: inherit; color: inherit; }
 
 :focus-visible {
-  outline: 3px solid var(--calotte);
+  outline: 3px solid var(--plastron);
   outline-offset: 2px;
 }
 
@@ -59,60 +58,85 @@ button, input { font: inherit; color: inherit; }
   clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 
-/* En-tête */
+/* Décor plein écran, derrière tout le reste */
+
+.decor {
+  position: fixed; left: 0; top: 0;
+  z-index: -1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+/* En-tête : panneau de sentier en bois */
 
 .entete {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
-  max-width: var(--colonne);
-  margin: 0 auto;
-  padding: 1rem var(--gouttiere) 0.75rem;
+  width: min(var(--colonne), calc(100vw - 2 * var(--gouttiere)));
+  margin: calc(0.75rem + env(safe-area-inset-top, 0px)) auto 1rem;
+  padding: 0.375rem 0.625rem 0.375rem 0.875rem;
+  background: var(--bois);
+  border: 4px solid var(--bois-clair);
+  box-shadow: var(--ombre);
+  color: var(--papier);
 }
 
 .logo {
-  font: 800 var(--t-28)/1 var(--serif);
-  font-variation-settings: "opsz" 48;
-  letter-spacing: -0.02em;
+  font: 400 2.6rem/0.8 var(--affiche);
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 var(--bois-sombre);
 }
 
 .entete-date {
   margin-left: auto;
-  font-size: var(--t-14);
-  color: var(--bandeau-doux);
+  font-size: 0.9375rem;
+  opacity: 0.85;
 }
 
-.bouton-aide {
-  align-self: center;
-  width: 2rem; height: 2rem;
-  border: 1.5px solid var(--bandeau);
-  border-radius: 50%;
-  background: transparent;
-  font: 700 var(--t-16)/1 var(--serif);
+.bouton-entete {
+  display: grid;
+  place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: var(--bois-clair);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.35);
+  color: var(--papier);
+  font: 600 1.125rem/1 var(--texte);
   cursor: pointer;
 }
+.bouton-entete:active { box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.35); }
+.bouton-entete svg { width: 1rem; height: 1rem; fill: currentColor; shape-rendering: crispEdges; }
+#figer-decor .icone-lecture { display: none; }
+#figer-decor[aria-pressed="true"] .icone-lecture { display: inline; }
+#figer-decor[aria-pressed="true"] .icone-pause { display: none; }
 
-/* Partie */
+/* Partie : feuille de papier dans un cadre en bois */
 
 .partie {
-  max-width: var(--colonne);
-  min-height: calc(100dvh - 4rem);
-  margin: 0 auto;
-  padding: 0 var(--gouttiere);
+  width: min(var(--colonne), calc(100vw - 2 * var(--gouttiere)));
+  margin: 0 auto 2rem;
+  padding: 1rem var(--gouttiere) 0;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.125rem;
+  background: var(--papier);
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre), inset 0 0 0 2px var(--papier-fonce);
 }
 
-/* La lucarne : seul élément audacieux de la page */
+/* La lucarne : un gros plan qui s'élargit à chaque erreur */
 
 .lucarne-cadre {
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--coquille-fonce);
-  border: 10px solid var(--joue);
-  border-radius: 3px;
+  background: var(--papier-fonce);
+  border: 4px solid var(--bois-sombre);
+  box-shadow: 0 0 0 4px var(--bois-clair);
+  margin: 4px;
 }
 
 .lucarne-photo {
@@ -138,102 +162,115 @@ button, input { font: inherit; color: inherit; }
   display: grid; place-items: center;
   padding: 1.5rem;
   text-align: center;
-  font: 400 var(--t-16)/1.45 var(--serif);
 }
 
 .credit {
-  margin-top: 0.375rem;
-  font-size: var(--t-14);
-  color: var(--bandeau-doux);
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--encre-douce);
 }
 .credit a { color: inherit; }
 
-/* Le nid : six œufs, un par essai */
+/* Le nid : six œufs en pixels, un par essai */
 
 .nid {
   display: flex;
   justify-content: center;
-  gap: 0.625rem;
+  gap: clamp(0.25rem, 2vw, 0.75rem);
 }
 
-.oeuf { width: 1.75rem; height: 2.25rem; }
-.oeuf svg { width: 100%; height: 100%; overflow: visible; }
-.oeuf .coque { fill: #9FCFC6; stroke: var(--bandeau); stroke-width: 1.5; }
-.oeuf .tache { fill: var(--bandeau); }
-.oeuf .fele { fill: none; stroke: var(--bandeau); stroke-width: 1.5; stroke-linejoin: round; opacity: 0; }
+.oeuf { width: 2.25rem; height: 2.8125rem; }
+.oeuf svg { width: 100%; height: 100%; overflow: visible; shape-rendering: crispEdges; }
+.oeuf .contour { fill: var(--encre); }
+.oeuf .coque { fill: #9FCFC6; }
+.oeuf .reflet { fill: #D6F0EA; }
+.oeuf .tache { fill: #4E6E66; }
+.oeuf .fele { fill: var(--encre); opacity: 0; }
+.oeuf .poussin { opacity: 0; }
+.oeuf .poussin-corps { fill: var(--plastron); }
+.oeuf .poussin-bec { fill: #E0782A; }
+.oeuf .poussin-oeil { fill: var(--encre); }
 
-.oeuf[data-etat="rate"] .coque { fill: var(--coquille); stroke: var(--bandeau-doux); stroke-dasharray: 3 2.5; }
-.oeuf[data-etat="rate"] .tache { opacity: 0; }
+.oeuf[data-etat="rate"] { opacity: 0.4; }
+.oeuf[data-etat="rate"] .coque { fill: var(--papier-fonce); }
+.oeuf[data-etat="rate"] .reflet, .oeuf[data-etat="rate"] .tache { opacity: 0; }
+.oeuf[data-etat="rate"] .contour { fill: var(--encre-douce); }
 
-.oeuf[data-etat="courant"] .coque { stroke-width: 2.5; }
+.oeuf[data-etat="courant"] svg { animation: couver 1.2s steps(2) infinite; }
+@keyframes couver {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
 
-.oeuf[data-etat="eclos"] .coque { fill: var(--plastron); }
 .oeuf[data-etat="eclos"] .tache { opacity: 0; }
 .oeuf[data-etat="eclos"] .fele { opacity: 1; }
-.oeuf[data-etat="eclos"] .chapeau { transform: translate(3px, -7px) rotate(18deg); }
-.oeuf .chapeau { transition: transform 600ms cubic-bezier(.3, 1.6, .5, 1) 500ms; transform-box: fill-box; transform-origin: 80% 100%; }
+.oeuf[data-etat="eclos"] .poussin { opacity: 1; transition: opacity 1ms 500ms; }
+.oeuf .chapeau { transition: transform 600ms steps(4) 500ms; }
+.oeuf .chapeau { transform-box: fill-box; transform-origin: 75% 100%; }
+.oeuf[data-etat="eclos"] .chapeau { transform: translate(2px, -3px) rotate(20deg); }
 
 /* Révélation */
 
 .revelation { text-align: center; }
 
 .nom-oiseau {
-  font: 400 var(--t-48)/1.02 var(--serif);
-  font-variation-settings: "opsz" 72;
-  letter-spacing: -0.025em;
+  font: 400 3.25rem/0.95 var(--affiche);
+  letter-spacing: 0.01em;
   text-wrap: balance;
 }
 .revelation.est-revelee .nom-oiseau {
-  animation: gonfler 900ms cubic-bezier(.2, .7, .2, 1) 300ms both;
+  animation: surgir 700ms steps(6) 300ms both;
 }
-@keyframes gonfler {
-  from { font-weight: 400; letter-spacing: 0; }
-  to   { font-weight: 800; letter-spacing: -0.025em; }
+@keyframes surgir {
+  from { transform: translateY(12px) scale(0.85); opacity: 0; }
+  to   { transform: none; opacity: 1; }
 }
-.revelation.est-revelee .nom-oiseau { font-weight: 800; }
 .revelation.sans-animation .nom-oiseau { animation: none; }
 
 .nom-latin {
   margin-top: 0.375rem;
-  font: italic 400 var(--t-21)/1.3 var(--serif);
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--encre-douce);
 }
 
 .bilan {
   margin-top: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .bilan-surligne {
   background: var(--plastron);
-  padding: 0.1em 0.35em;
-  border-radius: 2px;
+  padding: 0.1em 0.4em;
+  box-shadow: 2px 2px 0 var(--encre);
 }
 
 /* Invitation, avant le premier essai */
 
 .invitation {
-  font: 400 1.0625rem/1.6 var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.5;
   text-align: center;
   text-wrap: balance;
 }
 
-/* Indices */
+/* Indices : petites étiquettes de carnet */
 
 .indices { display: grid; gap: 0.5rem; }
+.indices:empty { display: none; }
 
 .indice {
   display: grid;
-  grid-template-columns: 8.5rem 1fr;
+  grid-template-columns: 8.75rem 1fr;
   gap: 0.75rem;
   align-items: baseline;
-  padding: 0.25rem 0;
-  border-bottom: 1px solid var(--bandeau-trait);
+  padding: 0.375rem 0.5rem;
+  background: var(--papier-fonce);
 }
-.indice-type { font-weight: 700; color: var(--lichen); }
-.indice-valeur { font: 400 var(--t-16)/1.45 var(--serif); }
-.indice.est-nouveau { animation: apparaitre 1200ms ease both; }
+.indice-type { font-weight: 600; color: var(--lichen); }
+.indice.est-nouveau { animation: apparaitre 900ms steps(3) both; }
 @keyframes apparaitre {
-  from { background: rgb(107 125 44 / 0.18); }
-  to   { background: transparent; }
+  from { background: var(--mousse); }
+  to   { background: var(--papier-fonce); }
 }
 
 /* Chant */
@@ -244,8 +281,8 @@ button, input { font: inherit; color: inherit; }
   align-items: center;
   gap: 0.75rem;
   padding: 0.5rem;
-  background: var(--joue);
-  border-radius: 12px;
+  background: var(--papier-fonce);
+  border: 2px solid var(--encre-trait);
 }
 
 .chant-bouton {
@@ -255,10 +292,10 @@ button, input { font: inherit; color: inherit; }
   min-height: 2.75rem;
   padding: 0 1rem 0 0.75rem;
   border: 0;
-  border-radius: 8px;
-  background: var(--calotte);
-  color: var(--joue);
-  font-weight: 700;
+  background: var(--mousse);
+  box-shadow: inset 0 -3px 0 var(--mousse-fonce);
+  color: var(--encre);
+  font-weight: 600;
   cursor: pointer;
 }
 .chant-icone { width: 1.125rem; height: 1.125rem; fill: currentColor; }
@@ -266,7 +303,7 @@ button, input { font: inherit; color: inherit; }
 .chant-bouton[aria-pressed="true"] .icone-pause { display: inline; }
 .chant-bouton[aria-pressed="true"] .icone-lecture { display: none; }
 
-.sonogramme { width: 100%; height: 3rem; display: block; }
+.sonogramme { width: 100%; height: 3rem; display: block; image-rendering: pixelated; }
 
 /* Essais */
 
@@ -279,23 +316,21 @@ button, input { font: inherit; color: inherit; }
   align-items: baseline;
   gap: 0.75rem;
   padding: 0.375rem 0;
+  border-bottom: 2px dotted var(--encre-trait);
 }
-.essai-nom { font: 500 var(--t-16)/1.3 var(--serif); }
-.essai[data-trouve="false"] .essai-nom { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--bandeau-doux); }
-.essai-retour { font-size: var(--t-14); color: var(--bandeau-doux); text-align: right; }
-.essai-retour .proche { color: var(--lichen); font-weight: 700; }
+.essai-nom { font-weight: 600; }
+.essai[data-trouve="false"] .essai-nom { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--encre-douce); }
+.essai-retour { font-size: 0.875rem; color: var(--encre-douce); text-align: right; }
+.essai-retour .proche { color: var(--lichen); font-weight: 600; }
 
 /* Fiche */
 
-.fiche { display: grid; gap: 1rem; }
-.fiche-texte {
-  font: 400 1.0625rem/1.6 var(--serif);
-  max-width: 65ch;
-}
-.fiche a { color: var(--calotte); text-underline-offset: 0.15em; }
-.prochain { font-weight: 700; }
+.fiche { display: grid; gap: 1rem; padding-bottom: 1.25rem; }
+.fiche-texte { line-height: 1.55; }
+.fiche a { color: var(--mousse-fonce); text-underline-offset: 0.15em; text-decoration-thickness: 2px; }
+.prochain { font-weight: 600; }
 .partage-retour:empty { display: none; }
-.credits { font-size: var(--t-14); color: var(--bandeau-doux); }
+.credits { font-size: 0.8125rem; color: var(--encre-douce); }
 .credits a { color: inherit; }
 
 /* Saisie, collée en bas de l'écran */
@@ -305,10 +340,9 @@ button, input { font: inherit; color: inherit; }
   bottom: 0;
   margin: auto calc(-1 * var(--gouttiere)) 0;
   padding: 0.75rem var(--gouttiere) calc(0.75rem + env(safe-area-inset-bottom));
-  background: var(--coquille);
-  border-top: 1px solid var(--bandeau-trait);
+  background: var(--papier);
+  border-top: 2px solid var(--encre-trait);
 }
-.saisie[hidden] { display: none; }
 
 .saisie-ligne { display: flex; gap: 0.5rem; }
 
@@ -317,25 +351,26 @@ button, input { font: inherit; color: inherit; }
   min-width: 0;
   min-height: 3rem;
   padding: 0 0.875rem;
-  border: 2px solid var(--bandeau);
-  border-radius: 12px;
-  background: var(--joue);
-  font: 500 1.0625rem/1 var(--serif);
+  border: 3px solid var(--encre);
+  background: #FFFBEF;
+  font-size: 1.0625rem;
 }
-.champ::placeholder { color: var(--bandeau-doux); font-family: var(--sans); font-weight: 400; }
-.champ:focus-visible { outline-offset: 1px; border-color: var(--calotte); }
+.champ::placeholder { color: var(--encre-douce); }
+.champ:focus-visible { outline-offset: 1px; }
 
 .bouton-principal {
   min-height: 3rem;
   padding: 0 1.25rem;
   border: 0;
-  border-radius: 12px;
-  background: var(--calotte);
-  color: var(--joue);
-  font-weight: 700;
+  background: var(--mousse);
+  box-shadow: inset 0 -4px 0 var(--mousse-fonce), 3px 3px 0 var(--encre);
+  color: var(--encre);
+  font-weight: 600;
+  font-size: 1.0625rem;
   cursor: pointer;
 }
-.bouton-principal:active { transform: translateY(1px); }
+.bouton-principal:hover { background: #9CC85A; }
+.bouton-principal:active { transform: translate(2px, 2px); box-shadow: inset 0 -4px 0 var(--mousse-fonce), 1px 1px 0 var(--encre); }
 
 .propositions {
   position: absolute;
@@ -343,9 +378,9 @@ button, input { font: inherit; color: inherit; }
   bottom: calc(100% - 0.25rem);
   max-height: 15rem;
   overflow-y: auto;
-  background: var(--joue);
-  border: 2px solid var(--bandeau);
-  border-radius: 12px;
+  background: #FFFBEF;
+  border: 3px solid var(--encre);
+  box-shadow: 4px 4px 0 var(--nuit);
   padding: 0.25rem;
 }
 .proposition {
@@ -353,15 +388,13 @@ button, input { font: inherit; color: inherit; }
   justify-content: space-between;
   gap: 1rem;
   padding: 0.625rem 0.75rem;
-  border-radius: 8px;
   cursor: pointer;
 }
-.proposition-nom { font: 500 var(--t-16)/1.2 var(--serif); }
-.proposition-latin { font: italic 400 var(--t-14)/1.2 var(--serif); color: var(--bandeau-doux); }
-.proposition[aria-selected="true"] { background: var(--coquille); }
-.proposition mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--calotte); text-decoration-thickness: 2px; }
+.proposition-latin { font-size: 0.875rem; font-style: italic; color: var(--encre-douce); }
+.proposition[aria-selected="true"] { background: var(--papier-fonce); }
+.proposition mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--mousse-fonce); text-decoration-thickness: 3px; }
 
-.saisie-message { margin-top: 0.5rem; font-size: var(--t-14); }
+.saisie-message { margin-top: 0.5rem; font-size: 0.875rem; }
 .saisie-message:empty { display: none; }
 
 /* Aide */
@@ -369,29 +402,26 @@ button, input { font: inherit; color: inherit; }
 .aide {
   max-width: min(26rem, calc(100vw - 2rem));
   padding: 1.5rem;
-  border: 2px solid var(--bandeau);
-  border-radius: 12px;
-  background: var(--joue);
-  color: var(--bandeau);
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre);
+  background: var(--papier);
+  color: var(--encre);
 }
-.aide::backdrop { background: rgb(28 43 75 / 0.45); }
-.aide h2 { font: 800 var(--t-28)/1.1 var(--serif); margin-bottom: 0.75rem; }
-.aide p { font: 400 var(--t-16)/1.55 var(--serif); margin-bottom: 0.75rem; }
+.aide::backdrop { background: rgb(27 38 51 / 0.5); }
+.aide h2 { font: 400 2.25rem/1 var(--affiche); margin-bottom: 0.75rem; }
+.aide p { line-height: 1.55; margin-bottom: 0.75rem; }
 .aide form { margin-top: 1rem; }
 
-/* Grands écrans : la colonne reste étroite, le nom révélé grandit */
-
 @media (min-width: 40rem) {
-  :root { --colonne: 32rem; }
-  .entete { padding-top: 2rem; }
-  .partie { gap: 1.5rem; }
-  .nom-oiseau { font-size: var(--t-72); }
+  .entete { margin-top: calc(1.25rem + env(safe-area-inset-top, 0px)); }
+  .nom-oiseau { font-size: 4.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     transition-delay: 0ms !important;
   }

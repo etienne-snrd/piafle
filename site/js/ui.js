@@ -19,25 +19,46 @@
 
   // ---------- Œufs ----------
 
-  const COQUE = "M14 1C6.6 1 1 12.6 1 21.5a13 13 0 0 0 26 0C27 12.6 21.4 1 14 1z";
-  const ZIGZAG = "0,15 4,12 8,16 12,12 16,16 20,12 24,16 28,13";
+  // Œuf en pixels (12 × 15) : x contour, c coquille, r reflet, t tache.
+  // La calotte (au-dessus d'une ligne en zigzag) se soulève quand l'œuf éclôt et montre le poussin.
+  const OEUF = [
+    "....xxxx....",
+    "...xrrccx...",
+    "..xrcccccx..",
+    "..xrcccccx..",
+    ".xrcccctccx.",
+    ".xccccccccx.",
+    ".xccccccccx.",
+    "xccccccctccx",
+    "xccccccccccx",
+    "xcctcccccccx",
+    "xccccccccccx",
+    "xccccccctccx",
+    ".xccccccccx.",
+    "..xccccccx..",
+    "...xxxxxx...",
+  ];
+  const CLASSES = { x: "contour", c: "coque", r: "reflet", t: "tache" };
+  const POUSSIN = [[3, 5, "corps"], [3, 6, "corps"], [4, 4, "corps"], [4, 5, "corps"], [4, 6, "oeil"], [4, 7, "corps"],
+    [5, 4, "corps"], [5, 5, "corps"], [5, 6, "corps"], [5, 7, "corps"], [5, 8, "bec"], [6, 4, "corps"], [6, 5, "corps"], [6, 6, "corps"], [6, 7, "corps"]];
+  const coupure = col => 6 + (col % 2);
 
-  function oeuf(i, etat) {
-    const id = "o" + i;
-    return `<svg viewBox="0 0 28 36" aria-hidden="true">
-      <defs>
-        <clipPath id="${id}h"><polygon points="0,0 28,0 ${ZIGZAG.split(" ").reverse().join(" ")}"/></clipPath>
-        <clipPath id="${id}b"><polygon points="${ZIGZAG} 28,40 0,40"/></clipPath>
-      </defs>
-      <g clip-path="url(#${id}b)">
-        <path class="coque" d="${COQUE}"/>
-        <circle class="tache" cx="9" cy="24" r="1.3"/><circle class="tache" cx="18" cy="28" r="1"/><circle class="tache" cx="16" cy="20" r=".8"/>
-      </g>
-      <polyline class="fele" points="${ZIGZAG.split(" ").slice(1, -1).join(" ")}"/>
-      <g class="chapeau"><g clip-path="url(#${id}h)">
-        <path class="coque" d="${COQUE}"/>
-        <circle class="tache" cx="12" cy="7" r="1.1"/><circle class="tache" cx="17" cy="11" r=".9"/>
-      </g></g>
+  function pixels(garder) {
+    let svg = "";
+    OEUF.forEach((ligne, y) => [...ligne].forEach((k, x) => {
+      if (k !== "." && garder(x, y)) svg += `<rect class="${CLASSES[k]}" x="${x}" y="${y}" width="1" height="1"/>`;
+    }));
+    return svg;
+  }
+
+  function oeuf() {
+    const poussin = POUSSIN.map(([y, x, k]) => `<rect class="poussin-${k}" x="${x}" y="${y}" width="1" height="1"/>`).join("");
+    const fele = [...Array(10)].map((_, i) => `<rect x="${i + 1}" y="${coupure(i + 1)}" width="1" height="1"/>`).join("");
+    return `<svg viewBox="0 0 12 15" aria-hidden="true">
+      <g class="poussin">${poussin}</g>
+      <g>${pixels((x, y) => y >= coupure(x))}</g>
+      <g class="fele">${fele}</g>
+      <g class="chapeau">${pixels((x, y) => y < coupure(x))}</g>
     </svg>`;
   }
 
@@ -47,7 +68,7 @@
       for (let i = 0; i < etat.essaisMax; i++) {
         const li = document.createElement("li");
         li.className = "oeuf";
-        li.innerHTML = oeuf(i);
+        li.innerHTML = oeuf();
         el.nid.appendChild(li);
       }
     }
@@ -185,7 +206,7 @@
   function dessinerRepos() {
     const ctx = tailleCanvas(), c = el.sonogramme;
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.fillStyle = "rgba(28,43,75,.25)";
+    ctx.fillStyle = "rgba(43,30,20,.25)";
     ctx.fillRect(0, c.height / 2, c.width, Math.max(1, c.height / 48));
   }
 
@@ -213,7 +234,7 @@
       for (let i = 0; i < n; i++) {
         const octet = donnees[debut + i];
         if (octet < seuil) continue;
-        ctx.fillStyle = `rgba(28,43,75,${0.25 + 0.75 * (octet - seuil) / Math.max(1, max - seuil)})`;
+        ctx.fillStyle = `rgba(43,30,20,${0.25 + 0.75 * (octet - seuil) / Math.max(1, max - seuil)})`;
         const y = c.height - (i + 1) / n * c.height;
         ctx.fillRect(c.width - pas, y, pas, Math.ceil(c.height / n) + 1);
       }
