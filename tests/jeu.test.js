@@ -93,3 +93,12 @@ test("comparaison des tailles", () => {
 test("chaque espèce a au moins une photo", () => {
   assert.deepStrictEqual(especes.filter((e) => !e.photos.length).map((e) => e.nom_fr), []);
 });
+
+test("texte de partage : un œuf par essai raté, un poussin pour le bon", () => {
+  const jeu = creerJeu({ especes, maintenant: jour("2026-11-09T10:00:00Z"), stockage: stockage() });
+  const mystere = oiseauDuJour(especes, 1);
+  const autres = especes.filter((e) => e !== mystere).slice(0, 2);
+  autres.forEach((e) => jeu.proposer(e.nom_fr));
+  jeu.proposer(mystere.nom_fr);
+  assert.strictEqual(jeu.partage().split("\n").slice(0, 2).join("\n"), "Piafle n°1 : 3/6\n🥚🥚🐣");
+});

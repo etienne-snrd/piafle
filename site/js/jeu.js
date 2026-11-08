@@ -312,7 +312,8 @@
     function partage() {
       const s = statut();
       const score = s === "gagne" ? `${noms.length}/${ESSAIS_MAX}` : `X/${ESSAIS_MAX}`;
-      const ligne = essais().map((e) => (e.trouve ? "🐦" : e.meme_famille ? "🪶" : "·")).join(" ");
+      // Un œuf par essai raté, un poussin pour l'essai trouvé.
+      const ligne = essais().map((e) => (e.trouve ? "🐣" : "🥚")).join("");
       return `Piafle n°${numero} : ${score}\n${ligne}\n${ADRESSE_JEU}`;
     }
 
