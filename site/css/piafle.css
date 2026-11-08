@@ -1,0 +1,428 @@
+/* Piafle : pixel art 8-bit, univers nature et bird-watching.
+   Le décor (js/decor.js) occupe tout l'écran ; la partie tient dans un panneau
+   de papier encadré de bois, au centre, là où le paysage reste dégagé. */
+
+:root {
+  --bois: #4A3220;          /* cadres et panneaux */
+  --bois-clair: #6B4A2E;
+  --bois-sombre: #2E1F14;
+  --papier: #F2E8C9;        /* fond de la partie */
+  --papier-fonce: #E3D5AC;
+  --encre: #2B1E14;         /* texte */
+  --encre-douce: rgb(43 30 20 / 0.66);
+  --encre-trait: rgb(43 30 20 / 0.18);
+  --mousse: #8DBA4E;        /* actions */
+  --mousse-fonce: #5E8A2E;
+  --plastron: #F4CF3C;      /* victoire, œuf éclos */
+  --lichen: #5E7024;        /* indices */
+  --nuit: #1B2633;          /* ombre portée des pixels */
+
+  --affiche: "Jersey 10", "Pixelify Sans", monospace;
+  --texte: "Pixelify Sans", system-ui, sans-serif;
+
+  --colonne: 30rem;
+  --gouttiere: 1rem;
+  --ombre: 0 4px 0 var(--nuit), 4px 0 0 var(--nuit), 4px 4px 0 var(--nuit);
+  --lent: 1100ms cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; background: #5FA7DA; }
+html[data-moment="aube"] { background: #8E73A6; }
+html[data-moment="soir"] { background: #7B4F8E; }
+html[data-moment="nuit"] { background: #16204A; }
+
+body {
+  margin: 0;
+  color: var(--encre);
+  font: 400 1rem/1.45 var(--texte);
+  min-height: 100dvh;
+}
+
+h1, h2, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+button, input { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--plastron);
+  outline-offset: 2px;
+}
+
+.visuellement-cache {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Décor plein écran, derrière tout le reste */
+
+.decor {
+  position: fixed; left: 0; top: 0;
+  z-index: -1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+/* En-tête : panneau de sentier en bois */
+
+.entete {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(var(--colonne), calc(100vw - 2 * var(--gouttiere)));
+  margin: calc(0.75rem + env(safe-area-inset-top, 0px)) auto 1rem;
+  padding: 0.375rem 0.625rem 0.375rem 0.875rem;
+  background: var(--bois);
+  border: 4px solid var(--bois-clair);
+  box-shadow: var(--ombre);
+  color: var(--papier);
+}
+
+.logo {
+  font: 400 2.6rem/0.8 var(--affiche);
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 var(--bois-sombre);
+}
+
+.entete-date {
+  margin-left: auto;
+  font-size: 0.9375rem;
+  opacity: 0.85;
+}
+
+.bouton-entete {
+  display: grid;
+  place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: var(--bois-clair);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.35);
+  color: var(--papier);
+  font: 600 1.125rem/1 var(--texte);
+  cursor: pointer;
+}
+.bouton-entete:active { box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.35); }
+.bouton-entete svg { width: 1rem; height: 1rem; fill: currentColor; shape-rendering: crispEdges; }
+#figer-decor .icone-lecture { display: none; }
+#figer-decor[aria-pressed="true"] .icone-lecture { display: inline; }
+#figer-decor[aria-pressed="true"] .icone-pause { display: none; }
+
+/* Partie : feuille de papier dans un cadre en bois */
+
+.partie {
+  width: min(var(--colonne), calc(100vw - 2 * var(--gouttiere)));
+  margin: 0 auto 2rem;
+  padding: 1rem var(--gouttiere) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  background: var(--papier);
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre), inset 0 0 0 2px var(--papier-fonce);
+}
+
+/* La lucarne : un gros plan qui s'élargit à chaque erreur */
+
+.lucarne-cadre {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--papier-fonce);
+  border: 4px solid var(--bois-sombre);
+  box-shadow: 0 0 0 4px var(--bois-clair);
+  margin: 4px;
+}
+
+.lucarne-photo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform-origin: var(--foyer-x, 50%) var(--foyer-y, 45%);
+  transform: scale(var(--zoom, 1));
+  transition: transform var(--lent), opacity 400ms ease;
+  opacity: 0;
+}
+.lucarne-photo.est-chargee { opacity: 1; }
+
+.lucarne[data-recadrage="0"] { --zoom: 3.4; }
+.lucarne[data-recadrage="1"] { --zoom: 2.7; }
+.lucarne[data-recadrage="2"] { --zoom: 2.1; }
+.lucarne[data-recadrage="3"] { --zoom: 1.65; }
+.lucarne[data-recadrage="4"] { --zoom: 1.3; }
+.lucarne[data-recadrage="5"] { --zoom: 1; }
+
+.lucarne.en-erreur .lucarne-cadre::after {
+  content: "La photo ne s'est pas chargée. Recharge la page pour réessayer.";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.credit {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--encre-douce);
+}
+.credit a { color: inherit; }
+
+/* Le nid : six œufs en pixels, un par essai */
+
+.nid {
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.25rem, 2vw, 0.75rem);
+}
+
+.oeuf { width: 2.25rem; height: 2.8125rem; }
+.oeuf svg { width: 100%; height: 100%; overflow: visible; shape-rendering: crispEdges; }
+.oeuf .contour { fill: var(--encre); }
+.oeuf .coque { fill: #9FCFC6; }
+.oeuf .reflet { fill: #D6F0EA; }
+.oeuf .tache { fill: #4E6E66; }
+.oeuf .fele { fill: var(--encre); opacity: 0; }
+.oeuf .poussin { opacity: 0; }
+.oeuf .poussin-corps { fill: var(--plastron); }
+.oeuf .poussin-bec { fill: #E0782A; }
+.oeuf .poussin-oeil { fill: var(--encre); }
+
+.oeuf[data-etat="rate"] { opacity: 0.4; }
+.oeuf[data-etat="rate"] .coque { fill: var(--papier-fonce); }
+.oeuf[data-etat="rate"] .reflet, .oeuf[data-etat="rate"] .tache { opacity: 0; }
+.oeuf[data-etat="rate"] .contour { fill: var(--encre-douce); }
+
+.oeuf[data-etat="courant"] svg { animation: couver 1.2s steps(2) infinite; }
+@keyframes couver {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.oeuf[data-etat="eclos"] .tache { opacity: 0; }
+.oeuf[data-etat="eclos"] .fele { opacity: 1; }
+.oeuf[data-etat="eclos"] .poussin { opacity: 1; transition: opacity 1ms 500ms; }
+.oeuf .chapeau { transition: transform 600ms steps(4) 500ms; }
+.oeuf .chapeau { transform-box: fill-box; transform-origin: 75% 100%; }
+.oeuf[data-etat="eclos"] .chapeau { transform: translate(2px, -3px) rotate(20deg); }
+
+/* Révélation */
+
+.revelation { text-align: center; }
+
+.nom-oiseau {
+  font: 400 3.25rem/0.95 var(--affiche);
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+.revelation.est-revelee .nom-oiseau {
+  animation: surgir 700ms steps(6) 300ms both;
+}
+@keyframes surgir {
+  from { transform: translateY(12px) scale(0.85); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.revelation.sans-animation .nom-oiseau { animation: none; }
+
+.nom-latin {
+  margin-top: 0.375rem;
+  font-size: 1.125rem;
+  font-style: italic;
+  color: var(--encre-douce);
+}
+
+.bilan {
+  margin-top: 0.75rem;
+  font-weight: 600;
+}
+.bilan-surligne {
+  background: var(--plastron);
+  padding: 0.1em 0.4em;
+  box-shadow: 2px 2px 0 var(--encre);
+}
+
+/* Invitation, avant le premier essai */
+
+.invitation {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Indices : petites étiquettes de carnet */
+
+.indices { display: grid; gap: 0.5rem; }
+.indices:empty { display: none; }
+
+.indice {
+  display: grid;
+  grid-template-columns: 8.75rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.375rem 0.5rem;
+  background: var(--papier-fonce);
+}
+.indice-type { font-weight: 600; color: var(--lichen); }
+.indice.est-nouveau { animation: apparaitre 900ms steps(3) both; }
+@keyframes apparaitre {
+  from { background: var(--mousse); }
+  to   { background: var(--papier-fonce); }
+}
+
+/* Chant */
+
+.chant {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: var(--papier-fonce);
+  border: 2px solid var(--encre-trait);
+}
+
+.chant-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem 0 0.75rem;
+  border: 0;
+  background: var(--mousse);
+  box-shadow: inset 0 -3px 0 var(--mousse-fonce);
+  color: var(--encre);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chant-icone { width: 1.125rem; height: 1.125rem; fill: currentColor; }
+.chant-bouton .icone-pause { display: none; }
+.chant-bouton[aria-pressed="true"] .icone-pause { display: inline; }
+.chant-bouton[aria-pressed="true"] .icone-lecture { display: none; }
+
+.sonogramme { width: 100%; height: 3rem; display: block; image-rendering: pixelated; }
+
+/* Essais */
+
+.essais { display: grid; gap: 0.25rem; }
+.essais:empty { display: none; }
+
+.essai {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.375rem 0;
+  border-bottom: 2px dotted var(--encre-trait);
+}
+.essai-nom { font-weight: 600; }
+.essai[data-trouve="false"] .essai-nom { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--encre-douce); }
+.essai-retour { font-size: 0.875rem; color: var(--encre-douce); text-align: right; }
+.essai-retour .proche { color: var(--lichen); font-weight: 600; }
+
+/* Fiche */
+
+.fiche { display: grid; gap: 1rem; padding-bottom: 1.25rem; }
+.fiche-texte { line-height: 1.55; }
+.fiche a { color: var(--mousse-fonce); text-underline-offset: 0.15em; text-decoration-thickness: 2px; }
+.prochain { font-weight: 600; }
+.partage-retour:empty { display: none; }
+.credits { font-size: 0.8125rem; color: var(--encre-douce); }
+.credits a { color: inherit; }
+
+/* Saisie, collée en bas de l'écran */
+
+.saisie {
+  position: sticky;
+  bottom: 0;
+  margin: auto calc(-1 * var(--gouttiere)) 0;
+  padding: 0.75rem var(--gouttiere) calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--papier);
+  border-top: 2px solid var(--encre-trait);
+}
+
+.saisie-ligne { display: flex; gap: 0.5rem; }
+
+.champ {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0 0.875rem;
+  border: 3px solid var(--encre);
+  background: #FFFBEF;
+  font-size: 1.0625rem;
+}
+.champ::placeholder { color: var(--encre-douce); }
+.champ:focus-visible { outline-offset: 1px; }
+
+.bouton-principal {
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 0;
+  background: var(--mousse);
+  box-shadow: inset 0 -4px 0 var(--mousse-fonce), 3px 3px 0 var(--encre);
+  color: var(--encre);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  cursor: pointer;
+}
+.bouton-principal:hover { background: #9CC85A; }
+.bouton-principal:active { transform: translate(2px, 2px); box-shadow: inset 0 -4px 0 var(--mousse-fonce), 1px 1px 0 var(--encre); }
+
+.propositions {
+  position: absolute;
+  left: var(--gouttiere); right: var(--gouttiere);
+  bottom: calc(100% - 0.25rem);
+  max-height: 15rem;
+  overflow-y: auto;
+  background: #FFFBEF;
+  border: 3px solid var(--encre);
+  box-shadow: 4px 4px 0 var(--nuit);
+  padding: 0.25rem;
+}
+.proposition {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.75rem;
+  cursor: pointer;
+}
+.proposition-latin { font-size: 0.875rem; font-style: italic; color: var(--encre-douce); }
+.proposition[aria-selected="true"] { background: var(--papier-fonce); }
+.proposition mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--mousse-fonce); text-decoration-thickness: 3px; }
+
+.saisie-message { margin-top: 0.5rem; font-size: 0.875rem; }
+.saisie-message:empty { display: none; }
+
+/* Aide */
+
+.aide {
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre);
+  background: var(--papier);
+  color: var(--encre);
+}
+.aide::backdrop { background: rgb(27 38 51 / 0.5); }
+.aide h2 { font: 400 2.25rem/1 var(--affiche); margin-bottom: 0.75rem; }
+.aide p { line-height: 1.55; margin-bottom: 0.75rem; }
+.aide form { margin-top: 1rem; }
+
+@media (min-width: 40rem) {
+  .entete { margin-top: calc(1.25rem + env(safe-area-inset-top, 0px)); }
+  .nom-oiseau { font-size: 4.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
