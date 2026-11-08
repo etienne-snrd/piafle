@@ -1,0 +1,398 @@
+/* Piafle : direction « Mésange bleue ».
+   Palette prise sur la mésange bleue et l'œuf de grive. */
+
+:root {
+  --coquille: #E4EFEA;   /* fond, œuf de grive */
+  --bandeau: #1C2B4B;    /* texte, trait de l'œil */
+  --calotte: #2468C7;    /* actions, focus */
+  --plastron: #F4CF3C;   /* victoire, œuf éclos */
+  --lichen: #6B7D2C;     /* indices */
+  --joue: #FFFFFF;       /* champ, passe-partout */
+
+  --bandeau-doux: rgb(28 43 75 / 0.62);
+  --bandeau-trait: rgb(28 43 75 / 0.16);
+  --coquille-fonce: #CFE2DA;
+
+  --serif: "Literata", Georgia, serif;
+  --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  /* Gamme de Bringhurst */
+  --t-14: 0.875rem;
+  --t-16: 1rem;
+  --t-21: 1.3125rem;
+  --t-28: 1.75rem;
+  --t-36: 2.25rem;
+  --t-48: 3rem;
+  --t-72: 4.5rem;
+
+  --colonne: 26.25rem;
+  --gouttiere: 1rem;
+  --lent: 1100ms cubic-bezier(.2, .7, .2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--coquille);
+  color: var(--bandeau);
+  font: 400 var(--t-16)/1.45 var(--sans);
+  min-height: 100dvh;
+}
+
+h1, h2, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+button, input { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--calotte);
+  outline-offset: 2px;
+}
+
+.visuellement-cache {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* En-tête */
+
+.entete {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  max-width: var(--colonne);
+  margin: 0 auto;
+  padding: 1rem var(--gouttiere) 0.75rem;
+}
+
+.logo {
+  font: 800 var(--t-28)/1 var(--serif);
+  font-variation-settings: "opsz" 48;
+  letter-spacing: -0.02em;
+}
+
+.entete-date {
+  margin-left: auto;
+  font-size: var(--t-14);
+  color: var(--bandeau-doux);
+}
+
+.bouton-aide {
+  align-self: center;
+  width: 2rem; height: 2rem;
+  border: 1.5px solid var(--bandeau);
+  border-radius: 50%;
+  background: transparent;
+  font: 700 var(--t-16)/1 var(--serif);
+  cursor: pointer;
+}
+
+/* Partie */
+
+.partie {
+  max-width: var(--colonne);
+  min-height: calc(100dvh - 4rem);
+  margin: 0 auto;
+  padding: 0 var(--gouttiere);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* La lucarne : seul élément audacieux de la page */
+
+.lucarne-cadre {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--coquille-fonce);
+  border: 10px solid var(--joue);
+  border-radius: 3px;
+}
+
+.lucarne-photo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform-origin: var(--foyer-x, 50%) var(--foyer-y, 45%);
+  transform: scale(var(--zoom, 1));
+  transition: transform var(--lent), opacity 400ms ease;
+  opacity: 0;
+}
+.lucarne-photo.est-chargee { opacity: 1; }
+
+.lucarne[data-recadrage="0"] { --zoom: 3.4; }
+.lucarne[data-recadrage="1"] { --zoom: 2.7; }
+.lucarne[data-recadrage="2"] { --zoom: 2.1; }
+.lucarne[data-recadrage="3"] { --zoom: 1.65; }
+.lucarne[data-recadrage="4"] { --zoom: 1.3; }
+.lucarne[data-recadrage="5"] { --zoom: 1; }
+
+.lucarne.en-erreur .lucarne-cadre::after {
+  content: "La photo ne s'est pas chargée. Recharge la page pour réessayer.";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+  font: 400 var(--t-16)/1.45 var(--serif);
+}
+
+.credit {
+  margin-top: 0.375rem;
+  font-size: var(--t-14);
+  color: var(--bandeau-doux);
+}
+.credit a { color: inherit; }
+
+/* Le nid : six œufs, un par essai */
+
+.nid {
+  display: flex;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.oeuf { width: 1.75rem; height: 2.25rem; }
+.oeuf svg { width: 100%; height: 100%; overflow: visible; }
+.oeuf .coque { fill: #9FCFC6; stroke: var(--bandeau); stroke-width: 1.5; }
+.oeuf .tache { fill: var(--bandeau); }
+.oeuf .fele { fill: none; stroke: var(--bandeau); stroke-width: 1.5; stroke-linejoin: round; opacity: 0; }
+
+.oeuf[data-etat="rate"] .coque { fill: var(--coquille); stroke: var(--bandeau-doux); stroke-dasharray: 3 2.5; }
+.oeuf[data-etat="rate"] .tache { opacity: 0; }
+
+.oeuf[data-etat="courant"] .coque { stroke-width: 2.5; }
+
+.oeuf[data-etat="eclos"] .coque { fill: var(--plastron); }
+.oeuf[data-etat="eclos"] .tache { opacity: 0; }
+.oeuf[data-etat="eclos"] .fele { opacity: 1; }
+.oeuf[data-etat="eclos"] .chapeau { transform: translate(3px, -7px) rotate(18deg); }
+.oeuf .chapeau { transition: transform 600ms cubic-bezier(.3, 1.6, .5, 1) 500ms; transform-box: fill-box; transform-origin: 80% 100%; }
+
+/* Révélation */
+
+.revelation { text-align: center; }
+
+.nom-oiseau {
+  font: 400 var(--t-48)/1.02 var(--serif);
+  font-variation-settings: "opsz" 72;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+.revelation.est-revelee .nom-oiseau {
+  animation: gonfler 900ms cubic-bezier(.2, .7, .2, 1) 300ms both;
+}
+@keyframes gonfler {
+  from { font-weight: 400; letter-spacing: 0; }
+  to   { font-weight: 800; letter-spacing: -0.025em; }
+}
+.revelation.est-revelee .nom-oiseau { font-weight: 800; }
+.revelation.sans-animation .nom-oiseau { animation: none; }
+
+.nom-latin {
+  margin-top: 0.375rem;
+  font: italic 400 var(--t-21)/1.3 var(--serif);
+}
+
+.bilan {
+  margin-top: 0.75rem;
+  font-weight: 700;
+}
+.bilan-surligne {
+  background: var(--plastron);
+  padding: 0.1em 0.35em;
+  border-radius: 2px;
+}
+
+/* Invitation, avant le premier essai */
+
+.invitation {
+  font: 400 1.0625rem/1.6 var(--serif);
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Indices */
+
+.indices { display: grid; gap: 0.5rem; }
+
+.indice {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--bandeau-trait);
+}
+.indice-type { font-weight: 700; color: var(--lichen); }
+.indice-valeur { font: 400 var(--t-16)/1.45 var(--serif); }
+.indice.est-nouveau { animation: apparaitre 1200ms ease both; }
+@keyframes apparaitre {
+  from { background: rgb(107 125 44 / 0.18); }
+  to   { background: transparent; }
+}
+
+/* Chant */
+
+.chant {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  background: var(--joue);
+  border-radius: 12px;
+}
+
+.chant-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem 0 0.75rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--calotte);
+  color: var(--joue);
+  font-weight: 700;
+  cursor: pointer;
+}
+.chant-icone { width: 1.125rem; height: 1.125rem; fill: currentColor; }
+.chant-bouton .icone-pause { display: none; }
+.chant-bouton[aria-pressed="true"] .icone-pause { display: inline; }
+.chant-bouton[aria-pressed="true"] .icone-lecture { display: none; }
+
+.sonogramme { width: 100%; height: 3rem; display: block; }
+
+/* Essais */
+
+.essais { display: grid; gap: 0.25rem; }
+.essais:empty { display: none; }
+
+.essai {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.375rem 0;
+}
+.essai-nom { font: 500 var(--t-16)/1.3 var(--serif); }
+.essai[data-trouve="false"] .essai-nom { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--bandeau-doux); }
+.essai-retour { font-size: var(--t-14); color: var(--bandeau-doux); text-align: right; }
+.essai-retour .proche { color: var(--lichen); font-weight: 700; }
+
+/* Fiche */
+
+.fiche { display: grid; gap: 1rem; }
+.fiche-texte {
+  font: 400 1.0625rem/1.6 var(--serif);
+  max-width: 65ch;
+}
+.fiche a { color: var(--calotte); text-underline-offset: 0.15em; }
+.prochain { font-weight: 700; }
+.partage-retour:empty { display: none; }
+.credits { font-size: var(--t-14); color: var(--bandeau-doux); }
+.credits a { color: inherit; }
+
+/* Saisie, collée en bas de l'écran */
+
+.saisie {
+  position: sticky;
+  bottom: 0;
+  margin: auto calc(-1 * var(--gouttiere)) 0;
+  padding: 0.75rem var(--gouttiere) calc(0.75rem + env(safe-area-inset-bottom));
+  background: var(--coquille);
+  border-top: 1px solid var(--bandeau-trait);
+}
+.saisie[hidden] { display: none; }
+
+.saisie-ligne { display: flex; gap: 0.5rem; }
+
+.champ {
+  flex: 1;
+  min-width: 0;
+  min-height: 3rem;
+  padding: 0 0.875rem;
+  border: 2px solid var(--bandeau);
+  border-radius: 12px;
+  background: var(--joue);
+  font: 500 1.0625rem/1 var(--serif);
+}
+.champ::placeholder { color: var(--bandeau-doux); font-family: var(--sans); font-weight: 400; }
+.champ:focus-visible { outline-offset: 1px; border-color: var(--calotte); }
+
+.bouton-principal {
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--calotte);
+  color: var(--joue);
+  font-weight: 700;
+  cursor: pointer;
+}
+.bouton-principal:active { transform: translateY(1px); }
+
+.propositions {
+  position: absolute;
+  left: var(--gouttiere); right: var(--gouttiere);
+  bottom: calc(100% - 0.25rem);
+  max-height: 15rem;
+  overflow-y: auto;
+  background: var(--joue);
+  border: 2px solid var(--bandeau);
+  border-radius: 12px;
+  padding: 0.25rem;
+}
+.proposition {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.proposition-nom { font: 500 var(--t-16)/1.2 var(--serif); }
+.proposition-latin { font: italic 400 var(--t-14)/1.2 var(--serif); color: var(--bandeau-doux); }
+.proposition[aria-selected="true"] { background: var(--coquille); }
+.proposition mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--calotte); text-decoration-thickness: 2px; }
+
+.saisie-message { margin-top: 0.5rem; font-size: var(--t-14); }
+.saisie-message:empty { display: none; }
+
+/* Aide */
+
+.aide {
+  max-width: min(26rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 2px solid var(--bandeau);
+  border-radius: 12px;
+  background: var(--joue);
+  color: var(--bandeau);
+}
+.aide::backdrop { background: rgb(28 43 75 / 0.45); }
+.aide h2 { font: 800 var(--t-28)/1.1 var(--serif); margin-bottom: 0.75rem; }
+.aide p { font: 400 var(--t-16)/1.55 var(--serif); margin-bottom: 0.75rem; }
+.aide form { margin-top: 1rem; }
+
+/* Grands écrans : la colonne reste étroite, le nom révélé grandit */
+
+@media (min-width: 40rem) {
+  :root { --colonne: 32rem; }
+  .entete { padding-top: 2rem; }
+  .partie { gap: 1.5rem; }
+  .nom-oiseau { font-size: var(--t-72); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}

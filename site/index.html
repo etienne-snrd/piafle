@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Piafle, l'oiseau du jour</title>
+  <meta name="description" content="Chaque jour, un oiseau de France à reconnaître en six essais, à la vue et au chant.">
+  <meta name="theme-color" content="#E4EFEA">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 36'%3E%3Cpath d='M14 1C6.6 1 1 12.6 1 21.5a13 13 0 0 0 26 0C27 12.6 21.4 1 14 1z' fill='%239FCFC6' stroke='%231C2B4B' stroke-width='2'/%3E%3Ccircle cx='9' cy='24' r='1.6' fill='%231C2B4B'/%3E%3Ccircle cx='18' cy='28' r='1.3' fill='%231C2B4B'/%3E%3Ccircle cx='15' cy='12' r='1.2' fill='%231C2B4B'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700&family=Literata:ital,opsz,wght@0,7..72,400..900;1,7..72,400&display=swap">
+  <link rel="stylesheet" href="css/piafle.css">
+</head>
+<body>
+  <header class="entete">
+    <h1 class="logo">Piafle</h1>
+    <p class="entete-date" id="date-jour"></p>
+    <button class="bouton-aide" type="button" id="ouvrir-aide" aria-haspopup="dialog">
+      <span aria-hidden="true">?</span><span class="visuellement-cache">Comment jouer</span>
+    </button>
+  </header>
+
+  <main class="partie" id="partie">
+    <figure class="lucarne" id="lucarne" data-recadrage="0">
+      <div class="lucarne-cadre">
+        <img class="lucarne-photo" id="photo" alt="" decoding="async">
+      </div>
+      <figcaption class="credit" id="credit-photo"></figcaption>
+    </figure>
+
+    <ol class="nid" id="nid" aria-label="Essais"></ol>
+
+    <section class="revelation" id="revelation" hidden aria-live="polite">
+      <h2 class="nom-oiseau" id="nom-oiseau"></h2>
+      <p class="nom-latin" id="nom-latin"></p>
+      <p class="bilan" id="bilan"></p>
+    </section>
+
+    <p class="invitation" id="invitation" hidden>Un des 100 oiseaux communs de France se cache derrière ce gros plan. Tu as six essais pour le reconnaître.</p>
+
+    <ul class="indices" id="indices" aria-label="Indices révélés"></ul>
+
+    <div class="chant" id="chant" hidden>
+      <button class="chant-bouton" type="button" id="chant-bouton" aria-pressed="false">
+        <svg class="chant-icone" viewBox="0 0 20 20" aria-hidden="true"><path class="icone-lecture" d="M6 4l10 6-10 6z"/><path class="icone-pause" d="M5 4h3.5v12H5zM11.5 4H15v12h-3.5z"/></svg>
+        <span id="chant-libelle">Écouter le chant</span>
+      </button>
+      <canvas class="sonogramme" id="sonogramme" aria-hidden="true"></canvas>
+      <audio id="audio" preload="none" crossorigin="anonymous"></audio>
+    </div>
+
+    <ul class="essais" id="essais" aria-label="Tes propositions"></ul>
+
+    <section class="fiche" id="fiche" hidden>
+      <p class="fiche-texte" id="fiche-texte"></p>
+      <p class="fiche-lien"><a id="fiche-wikipedia" href="#">Lire la page Wikipédia</a></p>
+      <button class="bouton-principal" type="button" id="partager">Partager mon résultat</button>
+      <p class="partage-retour" id="partage-retour" role="status"></p>
+      <p class="prochain" id="prochain"></p>
+      <p class="credits" id="credits"></p>
+    </section>
+
+    <form class="saisie" id="saisie" autocomplete="off">
+      <label class="visuellement-cache" for="champ">Nom de l'oiseau</label>
+      <div class="saisie-ligne">
+        <input class="champ" id="champ" type="text" placeholder="Nom de l'oiseau"
+               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="propositions"
+               enterkeyhint="send" spellcheck="false" autocapitalize="off">
+        <button class="bouton-principal" type="submit">Proposer</button>
+      </div>
+      <ul class="propositions" id="propositions" role="listbox" hidden></ul>
+      <p class="saisie-message" id="saisie-message" role="status"></p>
+    </form>
+  </main>
+
+  <dialog class="aide" id="aide" aria-labelledby="aide-titre">
+    <h2 id="aide-titre">Comment jouer</h2>
+    <p>Chaque jour, un oiseau de France est caché derrière la photo. Tout le monde a le même.</p>
+    <p>Tu as six œufs, un par essai. À chaque erreur, la photo s'élargit et un nouvel indice apparaît : taille, milieu, famille, puis le chant.</p>
+    <p>Quand tu proposes un oiseau de la même famille, on te le dit. Ça aide à chercher dans la bonne direction.</p>
+    <form method="dialog"><button class="bouton-principal" type="submit">Jouer</button></form>
+  </dialog>
+
+  <script src="js/jeu.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
