@@ -1,0 +1,101 @@
+nom_fr,nom_scientifique,milieu
+Merle noir,Turdus merula,jardins
+Rougegorge familier,Erithacus rubecula,jardins
+Mésange charbonnière,Parus major,jardins
+Mésange bleue,Cyanistes caeruleus,jardins
+Moineau domestique,Passer domesticus,villes
+Pinson des arbres,Fringilla coelebs,forêts
+Pigeon ramier,Columba palumbus,jardins
+Pigeon biset,Columba livia,villes
+Tourterelle turque,Streptopelia decaocto,villes
+Tourterelle des bois,Streptopelia turtur,campagnes
+Étourneau sansonnet,Sturnus vulgaris,villes
+Corneille noire,Corvus corone,campagnes
+Corbeau freux,Corvus frugilegus,campagnes
+Choucas des tours,Coloeus monedula,villes
+Grand Corbeau,Corvus corax,montagnes
+Pie bavarde,Pica pica,jardins
+Geai des chênes,Garrulus glandarius,forêts
+Fauvette à tête noire,Sylvia atricapilla,jardins
+Fauvette grisette,Curruca communis,campagnes
+Hypolaïs polyglotte,Hippolais polyglotta,campagnes
+Rousserolle effarvatte,Acrocephalus scirpaceus,zones humides
+Pouillot véloce,Phylloscopus collybita,forêts
+Troglodyte mignon,Troglodytes troglodytes,jardins
+Accenteur mouchet,Prunella modularis,jardins
+Rougequeue noir,Phoenicurus ochruros,villes
+Rougequeue à front blanc,Phoenicurus phoenicurus,jardins
+Rossignol philomèle,Luscinia megarhynchos,campagnes
+Tarier pâtre,Saxicola rubicola,campagnes
+Grive musicienne,Turdus philomelos,forêts
+Grive draine,Turdus viscivorus,campagnes
+Gobemouche gris,Muscicapa striata,jardins
+Loriot d'Europe,Oriolus oriolus,forêts
+Chardonneret élégant,Carduelis carduelis,jardins
+Verdier d'Europe,Chloris chloris,jardins
+Serin cini,Serinus serinus,jardins
+Linotte mélodieuse,Linaria cannabina,campagnes
+Tarin des aulnes,Spinus spinus,forêts
+Bouvreuil pivoine,Pyrrhula pyrrhula,forêts
+Grosbec casse-noyaux,Coccothraustes coccothraustes,forêts
+Bruant jaune,Emberiza citrinella,campagnes
+Bruant zizi,Emberiza cirlus,campagnes
+Bruant des roseaux,Emberiza schoeniclus,zones humides
+Mésange à longue queue,Aegithalos caudatus,jardins
+Mésange nonnette,Poecile palustris,forêts
+Mésange huppée,Lophophanes cristatus,forêts
+Mésange noire,Periparus ater,forêts
+Sittelle torchepot,Sitta europaea,forêts
+Grimpereau des jardins,Certhia brachydactyla,jardins
+Roitelet triple-bandeau,Regulus ignicapilla,forêts
+Roitelet huppé,Regulus regulus,forêts
+Pic épeiche,Dendrocopos major,forêts
+Pic vert,Picus viridis,jardins
+Pic noir,Dryocopus martius,forêts
+Coucou gris,Cuculus canorus,campagnes
+Huppe fasciée,Upupa epops,campagnes
+Martin-pêcheur d'Europe,Alcedo atthis,zones humides
+Hirondelle rustique,Hirundo rustica,campagnes
+Hirondelle de fenêtre,Delichon urbicum,villes
+Martinet noir,Apus apus,villes
+Alouette des champs,Alauda arvensis,campagnes
+Bergeronnette grise,Motacilla alba,villes
+Bergeronnette des ruisseaux,Motacilla cinerea,zones humides
+Bergeronnette printanière,Motacilla flava,campagnes
+Pipit farlouse,Anthus pratensis,campagnes
+Faisan de Colchide,Phasianus colchicus,campagnes
+Perdrix grise,Perdix perdix,campagnes
+Buse variable,Buteo buteo,campagnes
+Faucon crécerelle,Falco tinnunculus,campagnes
+Faucon pèlerin,Falco peregrinus,montagnes
+Épervier d'Europe,Accipiter nisus,forêts
+Milan noir,Milvus migrans,zones humides
+Milan royal,Milvus milvus,campagnes
+Busard Saint-Martin,Circus cyaneus,campagnes
+Chouette hulotte,Strix aluco,forêts
+Chevêche d'Athéna,Athene noctua,campagnes
+Effraie des clochers,Tyto alba,campagnes
+Hibou moyen-duc,Asio otus,campagnes
+Héron cendré,Ardea cinerea,zones humides
+Grande Aigrette,Ardea alba,zones humides
+Aigrette garzette,Egretta garzetta,zones humides
+Héron garde-bœufs,Bubulcus ibis,campagnes
+Cigogne blanche,Ciconia ciconia,zones humides
+Grue cendrée,Grus grus,zones humides
+Canard colvert,Anas platyrhynchos,zones humides
+Cygne tuberculé,Cygnus olor,zones humides
+Bernache du Canada,Branta canadensis,zones humides
+Tadorne de Belon,Tadorna tadorna,littoral
+Foulque macroule,Fulica atra,zones humides
+Gallinule poule-d'eau,Gallinula chloropus,zones humides
+Grèbe huppé,Podiceps cristatus,zones humides
+Grand Cormoran,Phalacrocorax carbo,zones humides
+Goéland argenté,Larus argentatus,littoral
+Goéland leucophée,Larus michahellis,littoral
+Mouette rieuse,Chroicocephalus ridibundus,zones humides
+Sterne pierregarin,Sterna hirundo,littoral
+Huîtrier pie,Haematopus ostralegus,littoral
+Vanneau huppé,Vanellus vanellus,campagnes
+Petit Gravelot,Charadrius dubius,zones humides
+Chevalier guignette,Actitis hypoleucos,zones humides
+Bécasse des bois,Scolopax rusticola,forêts
