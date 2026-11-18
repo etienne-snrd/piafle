@@ -218,7 +218,17 @@
   // dessinée en barres de pixels : la partie déjà écoutée se colore et un
   // clic sur l'onde fait avancer la lecture à cet endroit.
   let onde = null;                // hauteurs des barres (0 à 1), ou null
+  let dureeDecodee = 0;           // durée lue dans le fichier décodé, en s
   let animation = 0;
+
+  // Durée de l'enregistrement, ou 0 si elle est inconnue. Pour un fichier
+  // servi en flux (MP3 de xeno-canto, par exemple), le navigateur annonce
+  // une durée Infinity tant qu'il n'a pas tout lu : on prend alors la durée
+  // du fichier décodé par calculerOnde().
+  function dureeTotale() {
+    const d = el.audio.duration;
+    return Number.isFinite(d) && d > 0 ? d : dureeDecodee;
+  }
   const LARGEUR_BARRE = 4, ESPACE_BARRE = 2;
 
   function urlLisible(url) {
@@ -237,6 +247,7 @@
       el.audio.dataset.url = url;
       el.audio.src = url;
       onde = null;
+      dureeDecodee = 0;
       dessinerOnde();
       calculerOnde(url);
     }
@@ -267,6 +278,7 @@
       const fond = tries[Math.floor(n * 0.3)], max = tries[n - 1] - fond || 1;
       if (el.audio.dataset.url !== url) return; // un autre son a été chargé entre-temps
       onde = energies.map(e => Math.sqrt(Math.max(0, e - fond) / max));
+      dureeDecodee = son.duration || 0;
     } catch (_) {
       onde = null; // forme d'onde indisponible : la barre de progression suffit
     }
@@ -282,8 +294,8 @@
   function dessinerOnde() {
     const ctx = tailleCanvas(), c = el.sonogramme, d = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, c.width, c.height);
-    const duree = el.audio.duration || 0;
-    const avance = duree ? el.audio.currentTime / duree : 0;
+    const duree = dureeTotale();
+    const avance = duree ? Math.min(1, el.audio.currentTime / duree) : 0;
     const l = LARGEUR_BARRE * d, e = ESPACE_BARRE * d, unite = 2 * d;
     const barres = Math.max(1, Math.floor((c.width + e) / (l + e)));
     const milieu = Math.round(c.height / 2 / unite) * unite;
@@ -295,7 +307,9 @@
       ctx.fillStyle = joue ? "#5E8A2E" : "rgba(43,30,20,.35)";
       ctx.fillRect(i * (l + e), milieu - h, l, h * 2);
     }
-    el.chantTemps.textContent = duree ? `${minutes(el.audio.currentTime)} / ${minutes(duree)}` : "";
+    const ecoule = el.audio.currentTime || 0;
+    // Durée inconnue : seulement le temps écoulé, une fois la lecture lancée.
+    el.chantTemps.textContent = duree ? `${minutes(Math.min(ecoule, duree))} / ${minutes(duree)}` : ecoule ? minutes(ecoule) : "";
   }
 
   const minutes = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
@@ -310,12 +324,14 @@
     else el.audio.pause();
   });
   el.sonogramme.addEventListener("click", e => {
-    if (!el.audio.duration) return;
+    const duree = dureeTotale();
+    if (!duree) return;
     const r = el.sonogramme.getBoundingClientRect();
-    el.audio.currentTime = (e.clientX - r.left) / r.width * el.audio.duration;
+    el.audio.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * duree;
     dessinerOnde();
   });
   el.audio.addEventListener("loadedmetadata", dessinerOnde);
+  el.audio.addEventListener("durationchange", dessinerOnde);
   el.audio.addEventListener("play", () => {
     el.chantBouton.setAttribute("aria-pressed", "true");
     el.chantLibelle.textContent = "Pause";
