@@ -33,34 +33,6 @@ Le tout tient dans une page statique en HTML, CSS et JavaScript, sans framework,
 
 La partie en cours est enregistrée dans le navigateur (`localStorage`) : on peut fermer la page et reprendre plus tard dans la journée.
 
-## Le décor
-
-Autour du jeu, un paysage en pixel art s'anime : lac, montagnes, cabane d'observation, campement, et des oiseaux qui vont et viennent (mésange, rouge-gorge, pic épeiche, martin-pêcheur, grues, héron, chouette la nuit…). Il suit l'heure de Paris et passe par quatre ambiances : **aube, jour, soir et nuit**. Les pictogrammes des indices et les cadres prennent les mêmes couleurs.
-
-Le bouton pause de l'en-tête fige le décor. Il est figé d'office si le système demande de réduire les animations.
-
-## Lancer le jeu en local
-
-Les données sont chargées avec `fetch`, il faut donc servir les fichiers par HTTP (ouvrir `index.html` directement ne suffit pas) :
-
-```bash
-git clone https://github.com/<ton-compte>/piafle.git
-cd piafle
-python3 -m http.server 8000
-```
-
-puis ouvrir <http://localhost:8000>.
-
-### Paramètres d'adresse utiles
-
-| Paramètre | Effet |
-|---|---|
-| `?moment=aube` / `jour` / `soir` / `nuit` | Force un moment de la journée pour le décor |
-| `?heure=0` à `23` | Simule une heure de Paris |
-| `?formule=gros-plan` | Autre déroulé des indices : gros plan sur un détail, couleurs du plumage, puis photo entière (6 essais) |
-| `?anim=demo` | Accélère les allées et venues des oiseaux du décor |
-
-Dans la console du navigateur, `Piafle.effets.envol()` rejoue l'animation de victoire.
 
 ## Organisation du code
 
@@ -108,12 +80,6 @@ Chaque entrée de `data/species.json` décrit une espèce :
 | `wikipedia` | lien et résumé de l'article |
 
 Pour ajouter une espèce, il suffit d'ajouter une entrée. Attention : changer la liste change aussi l'ordre de passage des oiseaux.
-
-## Déploiement
-
-Le site est prévu pour [Netlify](https://www.netlify.com/) : on publie le dossier tel quel, sans commande de build. Le fichier `_headers` y applique une politique de sécurité stricte : aucun script écrit dans la page, et les médias ne peuvent venir que de `upload.wikimedia.org` et `xeno-canto.org`.
-
-N'importe quel hébergement statique convient aussi (GitHub Pages, par exemple), mais `_headers` n'y sera pas pris en compte. Pense alors à mettre à jour `ADRESSE_JEU` dans `js/jeu.js`, l'adresse utilisée dans le texte de partage.
 
 ## Crédits
 
