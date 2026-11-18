@@ -1,0 +1,36 @@
+/* Effets après un essai (js/effets.js) : tremblement,
+   envol d'oiseaux quand c'est gagné. */
+
+/* Raté : le panneau tremble par à-coups, comme un écran de console. */
+.effet-secousse { animation: effet-secousse 420ms steps(1) both; }
+@keyframes effet-secousse {
+  0%   { transform: translateX(0); }
+  12%  { transform: translateX(-8px); }
+  26%  { transform: translateX(8px); }
+  40%  { transform: translateX(-6px); }
+  54%  { transform: translateX(6px); }
+  68%  { transform: translateX(-4px); }
+  82%  { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+.effet-secousse .champ { border-color: #C8553D; }
+
+/* Gagné : le panneau fait un petit bond. */
+.effet-bond { animation: effet-bond 520ms steps(1) both; }
+@keyframes effet-bond {
+  0%   { transform: translateY(0); }
+  15%  { transform: translateY(-8px); }
+  35%  { transform: translateY(-12px); }
+  55%  { transform: translateY(-6px); }
+  75%  { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
+/* Envol : canevas en gros pixels, par-dessus la page, qui ne gêne pas les clics. */
+.effet-envol {
+  position: fixed; left: 0; top: 0;
+  z-index: 30;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}

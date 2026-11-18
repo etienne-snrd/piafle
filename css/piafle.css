@@ -1,0 +1,714 @@
+/* Piafle : pixel art 8-bit, univers nature et bird-watching.
+   Le décor (js/decor.js) occupe tout l'écran ; la partie tient dans un panneau
+   de papier encadré de bois, au centre, là où le paysage reste dégagé.
+
+   La page ne défile jamais : la colonne de jeu a la largeur de la photo et
+   ne dépasse pas la hauteur de l'écran ; si la place manque, c'est la photo
+   qui rapetisse. L'historique des essais est dans un encart à côté. */
+
+@font-face {
+  font-family: "Pixelify Piafle";
+  src: url("../polices/pixelify-piafle-400.woff2") format("woff2");
+  font-weight: 300 500; font-display: swap;
+}
+@font-face {
+  font-family: "Pixelify Piafle";
+  src: url("../polices/pixelify-piafle-600.woff2") format("woff2");
+  font-weight: 501 800; font-display: swap;
+}
+/* Jersey 10 et Jersey 20 (The Soft Type Project, licence OFL : polices/OFL-jersey.txt),
+   servies depuis polices/ (aucune requête vers un tiers), réduites aux
+   caractères latins. */
+@font-face {
+  font-family: "Jersey 10";
+  src: url("../polices/jersey-10.woff2") format("woff2");
+  font-weight: 400; font-display: swap;
+}
+@font-face {
+  font-family: "Jersey 20";
+  src: url("../polices/jersey-20.woff2") format("woff2");
+  font-weight: 400; font-display: swap;
+}
+
+:root {
+  --bois: #4A3220;          /* cadres et panneaux */
+  --bois-clair: #6B4A2E;
+  --bois-sombre: #2E1F14;
+  --papier: #F2E8C9;        /* fond de la partie */
+  --papier-fonce: #E3D5AC;
+  --encre: #2B1E14;         /* texte */
+  --encre-douce: rgb(43 30 20 / 0.66);
+  --encre-trait: rgb(43 30 20 / 0.18);
+  --mousse: #8DBA4E;        /* actions */
+  --mousse-fonce: #5E8A2E;
+  --plastron: #F4CF3C;      /* victoire */
+  --rouge-pastel: #F2998C;  /* défaite */
+  --lichen: #5E7024;        /* indices */
+  --nuit: #1B2633;          /* ombre portée des pixels */
+
+  /* Jersey 20 pour les titres ; Pixelify Sans pour le texte, dans une
+     version modifiée (« Pixelify Piafle ») dont les chiffres 2, 5 et 7 sont
+     redessinés pour ne pas se confondre avec Z, S et un crochet. Fichiers
+     dans polices/ (licence OFL). */
+  --logo: "Jersey 10", "Jersey 20", monospace; /* logo et nom de l'oiseau trouvé */
+  --affiche: "Jersey 20", "Pixelify Piafle", monospace;
+  --texte: "Pixelify Piafle", system-ui, sans-serif;
+
+  --colonne: 30rem;
+  --gouttiere: 1rem;
+  --ombre: 0 4px 0 var(--nuit), 4px 0 0 var(--nuit), 4px 4px 0 var(--nuit);
+  --lent: 1100ms cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+/* --hauteur suit la partie visible de l'écran (réglée par ui.js quand le
+   clavier du téléphone s'ouvre). */
+html {
+  -webkit-text-size-adjust: 100%; background: var(--bois-sombre);
+  height: var(--hauteur, 100dvh);
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+/* La page n'apparaît qu'une fois le décor peint : pas de fond vide au chargement. */
+body { opacity: 0; transition: opacity 600ms ease; }
+html.decor-pret body { opacity: 1; }
+
+body {
+  margin: 0;
+  color: var(--encre);
+  font: 400 1rem/1.4 var(--texte);
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Italique : Pixelify n'en a pas, le navigateur penche les lettres. */
+i, em, .nom-latin, .proposition-latin {
+  font-style: italic;
+  font-synthesis: style;
+}
+
+h1, h2, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+button, input { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--plastron);
+  outline-offset: 2px;
+}
+
+.visuellement-cache {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Décor plein écran, derrière tout le reste */
+
+.decor {
+  position: fixed; left: 0; top: 0;
+  z-index: -1;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+/* En-tête : panneau de sentier en bois */
+
+.entete {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  grid-column: 2;
+  grid-row: 1;
+  margin: calc(0.5rem + env(safe-area-inset-top, 0px)) 0 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  background: var(--bois);
+  border: 4px solid var(--bois-clair);
+  box-shadow: var(--ombre);
+  color: var(--papier);
+}
+
+.logo {
+  font: 400 2.6rem/0.8 var(--logo);
+  letter-spacing: 0.02em;
+  text-shadow: 2px 2px 0 var(--bois-sombre);
+}
+
+.entete-date {
+  margin-left: auto;
+  font-size: 0.9375rem;
+  opacity: 0.85;
+}
+
+.bouton-entete {
+  display: grid;
+  place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  padding: 0;
+  border: 0;
+  background: var(--bois-clair);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.35);
+  color: var(--papier);
+  font: 600 1.125rem/1 var(--texte);
+  cursor: pointer;
+}
+.bouton-entete:active { box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.35); }
+.bouton-entete svg { width: 1rem; height: 1rem; fill: currentColor; shape-rendering: crispEdges; }
+#figer-decor .icone-lecture { display: none; }
+#figer-decor[aria-pressed="true"] .icone-lecture { display: inline; }
+#figer-decor[aria-pressed="true"] .icone-pause { display: none; }
+
+/* Zone de jeu au centre, encart d'historique à sa droite */
+
+.jeu {
+  flex: 1 1 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--largeur) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: start;
+  column-gap: 1rem;
+  padding: 0 var(--gouttiere) calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  --largeur: min(var(--colonne), calc(100vw - 2 * var(--gouttiere)));
+}
+
+/* Partie : feuille de papier dans un cadre en bois */
+
+.partie {
+  grid-column: 2;
+  grid-row: 2;
+  max-height: 100%;
+  min-height: 0;
+  padding: 0.75rem var(--gouttiere);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--papier);
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre), inset 0 0 0 2px var(--papier-fonce);
+}
+.partie > * { flex: none; }
+
+/* Lucarne : photo de l'oiseau, pixelisée ou nette selon l'étape */
+
+/* La photo prend toute la largeur de la colonne ; si l'écran manque de
+   hauteur, la lucarne se tasse et la photo s'y inscrit en entier. */
+.partie > .lucarne {
+  flex: 0 1 calc((var(--largeur) - 2 * var(--gouttiere) - 8px) / var(--format, 1.333) + 16px);
+  min-height: 6rem;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+.lucarne-cadre {
+  position: relative;
+  /* 16px : bordure, liseré et marge du cadre. */
+  width: min(100cqw - 16px, (100cqh - 16px) * var(--format, 1.333));
+  aspect-ratio: var(--format, 4 / 3);
+  overflow: hidden;
+  background: var(--papier-fonce);
+  border: 4px solid var(--bois-sombre);
+  box-shadow: 0 0 0 4px var(--bois-clair);
+  margin: 4px;
+}
+
+.lucarne-photo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform-origin: var(--foyer-x, 50%) var(--foyer-y, 45%);
+  transform: translate(var(--decal-x, 0), var(--decal-y, 0)) scale(var(--zoom, 1));
+  transition: transform var(--lent), opacity 400ms ease;
+  opacity: 0;
+}
+.lucarne-photo.est-chargee { opacity: 1; }
+
+/* -1 : pas de photo, 0 : gros plan pixelisé, 2 : photo entière et nette.
+   Le zoom et son point sont réglés par ui.js (--zoom, --foyer-*, --decal-*).
+   Le gros plan pixelisé est dessiné par ui.js dans un petit canevas agrandi
+   sans lissage, posé sur la photo. */
+.lucarne-pixels {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  image-rendering: pixelated;
+  opacity: 0;
+  transition: opacity 600ms steps(4);
+  pointer-events: none;
+}
+.lucarne[data-pixelise="true"] .lucarne-pixels.est-pret { opacity: 1; }
+.lucarne[data-pixelise="true"] .lucarne-photo { visibility: hidden; }
+
+/* Niveau de difficulté de l'oiseau du jour */
+.difficulte {
+  display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; min-width: 0;
+  margin: 0; font-family: var(--affiche); font-size: 1.25rem; line-height: 1; white-space: nowrap;
+}
+.difficulte:empty { display: none; }
+
+.lucarne.en-erreur .lucarne-cadre::after {
+  content: "La photo ne s'est pas chargée. Recharge la page pour réessayer.";
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Révélation */
+
+.revelation { flex: none; text-align: center; }
+
+.nom-oiseau {
+  font: 400 3.25rem/0.95 var(--logo);
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+.revelation.est-revelee .nom-oiseau {
+  animation: surgir 700ms steps(6) 300ms both;
+}
+@keyframes surgir {
+  from { transform: translateY(12px) scale(0.85); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.revelation.sans-animation .nom-oiseau { animation: none; }
+
+.nom-latin {
+  margin-top: 0.125rem;
+  font-size: 1rem;
+  color: var(--encre-douce);
+}
+
+.bilan {
+  margin-top: 0.375rem;
+  font-weight: 600;
+}
+.bilan-surligne {
+  background: var(--plastron);
+  padding: 0.1em 0.4em;
+  box-shadow: 2px 2px 0 var(--encre);
+}
+.bilan-surligne.est-perdu { background: var(--rouge-pastel); }
+
+/* Invitation, avant le premier essai */
+
+.invitation {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Indices : petites étiquettes de carnet. Taille et milieu côte à côte,
+   les autres sur toute la largeur. */
+
+.indices { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
+.indices:empty { display: none; }
+
+.indice {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0 0.75rem;
+  align-content: start;
+  padding: 0.25rem 0.5rem 0.3125rem;
+  background: var(--papier-fonce);
+  line-height: 1.25;
+}
+.indice-taille, .indice-milieu { grid-column: auto; }
+.indice-type { font-size: 0.8125rem; font-weight: 600; color: var(--lichen); }
+.indice-valeur { font-size: 0.9375rem; }
+/* Taille et milieu : pictogramme 8-bit en haut, texte dessous. Les pictos
+   sont agrandis sans lissage avec le même pixel que le décor animé :
+   --pixel, posé par js/pictos.js (2 à 4 px). */
+.indice.indice-picto {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  gap: 0.125rem;
+  padding: 0.5rem 0.375rem 0.375rem;
+  text-align: center;
+}
+.picto {
+  display: block;
+  width: calc(44 * var(--pixel, 3px));
+  height: calc(26 * var(--pixel, 3px));
+  /* Le cadre noir est une vraie bordure (et non une ombre) pour qu'il fasse
+     partie de la zone de survol : l'animation se lance dès que la souris
+     touche le cadre. */
+  box-sizing: content-box;
+  border: var(--pixel, 3px) solid var(--encre);
+  margin: 0 0 max(0px, calc(0.25rem - var(--pixel, 3px)));
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.indice-picto .indice-valeur { text-wrap: balance; }
+.indice.est-nouveau { animation: apparaitre 900ms steps(3) both; }
+@keyframes apparaitre {
+  from { background: var(--mousse); }
+  to   { background: var(--papier-fonce); }
+}
+
+/* Chant */
+
+.chant {
+  flex: none;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem;
+  background: var(--papier-fonce);
+  border: 2px solid var(--encre-trait);
+}
+
+.chant-bouton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.875rem 0 0.625rem;
+  border: 0;
+  background: var(--mousse);
+  box-shadow: inset 0 -3px 0 var(--mousse-fonce);
+  color: var(--encre);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chant-icone { width: 1.125rem; height: 1.125rem; fill: currentColor; }
+.chant-bouton .icone-pause { display: none; }
+.chant-bouton[aria-pressed="true"] .icone-pause { display: inline; }
+.chant-bouton[aria-pressed="true"] .icone-lecture { display: none; }
+
+.sonogramme { width: 100%; height: 2.5rem; display: block; cursor: pointer; }
+.chant-temps { font-variant-numeric: tabular-nums; font-size: 0.875rem; color: var(--encre-douce); min-width: 5.5ch; text-align: right; }
+.palette { display: inline-flex; gap: 6px; vertical-align: middle; }
+.palette i { width: 22px; height: 22px; box-shadow: 0 0 0 2px var(--bois-sombre); }
+
+/* Encart d'historique : le dernier essai en haut de la pile. */
+
+.historique {
+  grid-column: 3;
+  grid-row: 2;
+  justify-self: start;
+  width: min(15rem, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--papier);
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre), inset 0 0 0 2px var(--papier-fonce);
+}
+.historique-titre { font: 400 1.375rem/1 var(--affiche); display: flex; justify-content: space-between; align-items: baseline; }
+.historique-titre span { font: 400 0.875rem/1 var(--texte); color: var(--encre-douce); }
+.historique-vide { font-size: 0.875rem; color: var(--encre-douce); }
+.historique:has(.essai) .historique-vide { display: none; }
+
+.essais {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.essais:empty { display: none; }
+
+.essai {
+  display: grid;
+  grid-template-columns: 1.375rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.25rem 0;
+  border-bottom: 2px dotted var(--encre-trait);
+  line-height: 1.25;
+}
+.essai:last-child { border-bottom: 0; }
+.essai-numero {
+  align-self: center;
+  width: 1.375rem; height: 1.375rem;
+  display: grid; place-items: center;
+  background: var(--papier-fonce);
+  font-size: 0.875rem; font-weight: 600;
+}
+.essai-nom { font-weight: 600; }
+.essai[data-trouve="false"] .essai-nom { text-decoration: line-through; text-decoration-thickness: 2px; color: var(--encre-douce); }
+.essai[data-trouve="true"] .essai-numero { background: var(--plastron); }
+.essai-retour { grid-column: 2; font-size: 0.8125rem; color: var(--encre-douce); }
+.essai-retour .proche { color: var(--lichen); font-weight: 600; }
+.essai.est-nouveau .essai-numero { animation: apparaitre 900ms steps(3) both; }
+
+/* Fin de partie : un bouton blanc vers Wikipédia et un bouton de
+   partage, moitié-moitié. Rien ne défile : si la hauteur manque, c'est la photo
+   qui rapetisse. Les petits dessins des boutons ont le pixel du décor. */
+
+.partie > .fiche {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 3px 3px 0; /* place pour l'ombre des boutons */
+}
+.fin-boutons { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.625rem; }
+.bouton-wiki, .bouton-partage {
+  display: flex; align-items: center; justify-content: center; gap: 0.625rem;
+  min-height: 3rem;
+  padding: 0 0.75rem;
+  border: 3px solid var(--encre);
+  box-shadow: 3px 3px 0 var(--encre);
+  color: var(--encre);
+  font: 600 1.0625rem/1.1 var(--texte);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.bouton-wiki { background: var(--blanc-bouton, #FFFFFF); }
+/* La nuit, jamais de blanc pur : un gris bleuté. */
+html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3DE; }
+.bouton-wiki:hover { background: var(--blanc-bouton-survol, #F1F1EC); }
+.bouton-partage { background: var(--mousse); box-shadow: inset 0 -4px 0 var(--mousse-fonce), 3px 3px 0 var(--encre); }
+.bouton-partage:hover { background: #9CC85A; }
+.bouton-partage.est-copie { background: var(--plastron); box-shadow: inset 0 -4px 0 #C9A21E, 3px 3px 0 var(--encre); }
+.bouton-wiki:active, .bouton-partage:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--encre); }
+.icone-partage {
+  flex: none;
+  fill: currentColor;
+  shape-rendering: crispEdges;
+  height: calc(8 * var(--pixel, 3px));
+}
+.icone-partage { width: calc(8 * var(--pixel, 3px)); }
+.prochain { font-weight: 600; line-height: 1.25; text-align: center; }
+.credits { font-size: 0.75rem; line-height: 1.3; color: var(--encre-douce); text-align: center; }
+.credits a { color: inherit; }
+
+/* Une fois la partie finie, la fiche remplace les indices. */
+.partie:not([data-statut="en_cours"]) .indices { display: none; }
+
+/* Saisie, au pied du panneau */
+
+.saisie {
+  position: relative;
+  padding-top: 0.625rem;
+  border-top: 2px solid var(--encre-trait);
+}
+
+.saisie-ligne { display: flex; gap: 0.5rem; }
+
+.champ {
+  flex: 1;
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 3px solid var(--encre);
+  background: #FFFBEF;
+  font-size: 1.0625rem;
+}
+.champ::placeholder { color: var(--encre-douce); }
+.champ:focus-visible { outline-offset: 1px; }
+
+.bouton-principal {
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 0;
+  background: var(--mousse);
+  box-shadow: inset 0 -4px 0 var(--mousse-fonce), 3px 3px 0 var(--encre);
+  color: var(--encre);
+  font-weight: 600;
+  font-size: 1.0625rem;
+  cursor: pointer;
+}
+.bouton-principal:hover { background: #9CC85A; }
+.bouton-principal:active { transform: translate(2px, 2px); box-shadow: inset 0 -4px 0 var(--mousse-fonce), 1px 1px 0 var(--encre); }
+
+/* Liste des noms proposés, au-dessus du champ */
+
+.propositions {
+  position: absolute;
+  z-index: 2;
+  left: 0; right: 0;
+  bottom: calc(100% - 0.25rem);
+  max-height: min(15.5rem, var(--hauteur, 100dvh) - 9rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #FFFBEF;
+  border: 3px solid var(--encre);
+  box-shadow: 4px 4px 0 var(--nuit);
+  padding: 0.25rem;
+}
+.proposition {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem 0.5rem 0.875rem;
+  border-left: 6px solid transparent;
+  cursor: pointer;
+}
+.proposition-texte { flex: 1; min-width: 0; }
+.proposition-latin { font-size: 0.875rem; color: var(--encre-douce); white-space: nowrap; }
+/* La proposition que la touche Entrée validera : bande de couleur sur le
+   côté, fond teinté et rappel de la touche. */
+.proposition[aria-selected="true"] {
+  background: #E4EFC4;
+  border-left-color: var(--mousse-fonce);
+}
+.proposition-touche { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .proposition[aria-selected="true"] .proposition-touche {
+    display: inline-block;
+    flex: none;
+    padding: 0 0.375rem;
+    background: var(--mousse-fonce);
+    color: #FFFBEF;
+    font-size: 0.8125rem; font-weight: 600;
+  }
+}
+.proposition mark { background: none; color: inherit; text-decoration: underline; text-decoration-color: var(--mousse-fonce); text-decoration-thickness: 3px; }
+
+.saisie-message { margin-top: 0.375rem; font-size: 0.875rem; }
+.saisie-message:empty { display: none; }
+
+/* Aide */
+
+.aide {
+  max-width: min(26rem, calc(100vw - 2rem));
+  max-height: calc(var(--hauteur, 100dvh) - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 4px solid var(--bois);
+  box-shadow: var(--ombre);
+  background: var(--papier);
+  color: var(--encre);
+}
+.aide::backdrop { background: rgb(27 38 51 / 0.5); }
+.aide h2 { font: 400 2.25rem/1 var(--affiche); margin-bottom: 0.75rem; }
+.aide p { line-height: 1.55; margin-bottom: 0.75rem; }
+.aide form { margin-top: 1rem; }
+/* Croix de fermeture : même bouton de bois que l'en-tête, dans le coin.
+   Placée après « Jouer » dans le code pour que le focus aille à « Jouer ». */
+.aide .aide-fermer { position: absolute; top: 0.75rem; right: 0.75rem; margin: 0; }
+.aide-fermer .bouton-entete svg { width: 0.875rem; height: 0.875rem; }
+.aide h2 { padding-right: 2.5rem; }
+
+/* Clavier du téléphone ouvert (classe posée par ui.js) : on ne garde que
+   la photo, les indices et la saisie, le temps d'écrire. */
+.clavier-ouvert .entete,
+.clavier-ouvert .chant,
+.clavier-ouvert .historique,
+.clavier-ouvert .difficulte { display: none; }
+.clavier-ouvert .jeu { padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)); padding-bottom: 0.5rem; }
+
+/* Écran moyen : pas la place d'un encart de chaque côté, la zone de jeu
+   et l'encart se partagent la largeur. */
+@media (max-width: 66rem) {
+  .jeu { grid-template-columns: minmax(0, 1fr) var(--largeur) minmax(0, 15rem) minmax(0, 1fr); }
+  .historique { grid-column: 3; width: 100%; }
+}
+
+/* Téléphone : l'encart passe sous la zone de jeu, sur toute la largeur,
+   et n'apparaît qu'après le premier essai. */
+@media (max-width: 47.99rem) {
+  .jeu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .entete { width: var(--largeur); margin-bottom: 0; }
+  .partie { flex: 0 1 auto; width: var(--largeur); }
+  .historique {
+    flex: 0 1000 auto;
+    width: var(--largeur);
+    min-height: 3.75rem;
+    max-height: 7.5rem;
+    padding: 0.375rem 0.625rem;
+  }
+  .historique:not(:has(.essai)) { display: none; }
+  .historique-titre { font-size: 1.125rem; }
+  .essai { padding: 0.125rem 0; grid-template-columns: 1.375rem minmax(0, auto) minmax(0, 1fr); }
+  .essai-retour { grid-column: 3; text-align: right; }
+  .nom-oiseau { font-size: 2.75rem; }
+  .prochain { font-size: 0.9375rem; }
+  /* Colonne étroite : libellés raccourcis pour tenir sur une ligne. */
+  .sauf-etroit { display: none; }
+  .bouton-wiki, .bouton-partage { padding: 0 0.5rem; gap: 0.5rem; }
+}
+
+@media (max-height: 38rem) {
+  .entete { margin-top: calc(0.375rem + env(safe-area-inset-top, 0px)); margin-bottom: 0.375rem; }
+  .partie { gap: 0.5rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .indice { display: flex; align-items: baseline; gap: 0.5rem; }
+  .indice.indice-picto { display: grid; padding-top: 0.375rem; }
+  .indice-type { flex: none; }
+}
+
+/* Barres de défilement (historique, liste des noms, aide) : dans le style
+   du cadre, un curseur de bois sur un rail de papier, carré, sans flèches.
+   Leur épaisseur suit le pixel du décor. */
+::-webkit-scrollbar { width: calc(4 * var(--pixel, 3px)); height: calc(4 * var(--pixel, 3px)); }
+::-webkit-scrollbar-track { background: var(--papier-fonce); box-shadow: inset var(--pixel, 3px) 0 0 rgb(43 30 20 / 0.12); }
+::-webkit-scrollbar-thumb {
+  background: var(--bois-clair);
+  border: var(--pixel, 3px) solid var(--bois-sombre);
+  box-shadow: inset var(--pixel, 3px) var(--pixel, 3px) 0 #8A6440;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--bois); }
+::-webkit-scrollbar-button, ::-webkit-scrollbar-corner { display: none; background: transparent; }
+/* Firefox ne connaît que la couleur et l'épaisseur. */
+@supports (-moz-appearance: none) {
+  * { scrollbar-color: var(--bois-clair) var(--papier-fonce); scrollbar-width: thin; }
+}
+
+/* Cadres peints (js/cadre.js) : le bois, la branche, le lierre et les
+   oiseaux sont dessinés en pixel art sur deux canevas plein écran, avec le
+   pixel du décor. Ici on leur fait de la place : bordure transparente (le
+   cadre peint la recouvre) et écarts agrandis. --c-in, --c-out et --c-bas
+   sont posés par js/cadre.js. */
+.entete, .partie, .historique {
+  border: var(--c-in, 3px) solid transparent;
+  box-shadow: inset 0 0 0 2px var(--papier-fonce);
+}
+.entete { box-shadow: none; }
+.jeu .entete {
+  margin-top: calc(0.5rem + var(--c-out, 3px) + env(safe-area-inset-top, 0px));
+  margin-bottom: calc(0.5rem + 2 * var(--c-out, 3px));
+}
+.jeu {
+  column-gap: calc(1rem + 2 * var(--c-out, 3px));
+  padding-bottom: calc(0.75rem + var(--c-out, 3px) + var(--c-bas, 0px) + env(safe-area-inset-bottom, 0px));
+}
+.cadres-avant, .cadres-arriere {
+  position: fixed; left: 0; top: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+.cadres-avant { z-index: 10; }
+.cadres-arriere { z-index: -1; }
+@media (max-width: 47.99rem) {
+  .jeu { gap: calc(0.5rem + 2 * var(--c-out, 3px)); }
+  .jeu .entete { margin-bottom: 0; }
+}
+@media (max-height: 38rem) {
+  .jeu .entete {
+    margin-top: calc(0.375rem + var(--c-out, 3px) + env(safe-area-inset-top, 0px));
+    margin-bottom: calc(0.375rem + 2 * var(--c-out, 3px));
+  }
+}
+.clavier-ouvert .jeu { padding-bottom: calc(0.5rem + var(--c-out, 3px)); }
+/* Petit téléphone, partie finie : l'historique laisse sa place pour que
+   l'écran de fin tienne sans défiler (le bilan dit déjà le nombre d'essais). */
+@media (max-width: 47.99rem) and (max-height: 38rem) {
+  .jeu:has(.partie:not([data-statut="en_cours"])) .historique { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
