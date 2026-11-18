@@ -2,11 +2,9 @@
 
 **L'oiseau du jour, à reconnaître au chant puis à la vue.**
 
-Piafle est un jeu quotidien dans l'esprit de Wordle, pour les oiseaux de France. Chaque jour, un oiseau mystère : on l'entend d'abord chanter, puis sa photo se dévoile peu à peu. Tu as cinq essais pour trouver son nom.
+Piafle est un jeu quotidien dans l'esprit de Wordle, pour les oiseaux de France. Chaque jour, un oiseau mystère : on l'entend d'abord chanter, puis sa photo se dévoile peu à peu. Le joueur a cinq essais pour trouver son nom.
 
 ▶ **Jouer : [piafle.netlify.app](https://piafle.netlify.app/)**
-
-Le tout tient dans une page statique en HTML, CSS et JavaScript, sans framework, sans dépendance et sans étape de compilation, avec un décor animé en pixel art.
 
 ---
 
@@ -14,7 +12,7 @@ Le tout tient dans une page statique en HTML, CSS et JavaScript, sans framework,
 
 - **Un oiseau par jour, le même pour tout le monde.** Il change à minuit, heure de Paris.
 - **Cinq essais.** Tu tapes un nom (français ou latin, avec ou sans accents) et tu choisis dans la liste de suggestions.
-- **Le chant est le premier indice.** On entend souvent un oiseau avant de le voir.
+- **Le chant est le premier indice.** On entend souvent un oiseau avant de le voir ;).
 - **Chaque erreur révèle un nouvel indice :**
 
 | Essais ratés | Ce qui se dévoile |
