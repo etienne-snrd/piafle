@@ -428,7 +428,18 @@
           <span class="proposition-latin">(${echapper(s.nom_scientifique)})</span></span>
         <span class="proposition-touche" aria-hidden="true">Entrée</span>
       </li>`).join("");
+    placerPropositions();
     majSelection();
+  }
+
+  // La liste s'ouvre au-dessus du champ. Sa hauteur est limitée à la place
+  // visible au-dessus d'elle, pour que la première proposition ne sorte
+  // jamais de l'écran (elle défile au-delà).
+  function placerPropositions() {
+    if (el.propositions.hidden) return;
+    const haut = window.visualViewport ? visualViewport.offsetTop : 0;
+    const bas = el.propositions.getBoundingClientRect().bottom;
+    el.propositions.style.setProperty("--place", Math.max(80, Math.floor(bas - haut - 8)) + "px");
   }
 
   function majSelection() {
@@ -475,6 +486,11 @@
   });
   el.champ.addEventListener("blur", () => setTimeout(fermerSuggestions, 150));
   el.propositions.addEventListener("mousedown", e => e.preventDefault());
+  // « Proposer » ne prend pas le focus : le clavier reste ouvert pour l'essai
+  // suivant et la page ne se réorganise pas pendant le toucher.
+  el.saisie.querySelector("button[type=submit]").addEventListener("mousedown", e => {
+    if (document.activeElement === el.champ) e.preventDefault();
+  });
   el.propositions.addEventListener("click", e => {
     const li = e.target.closest(".proposition");
     if (li) proposer(li.dataset.nom);
@@ -537,7 +553,7 @@
     el.message.textContent = "Les données du jour ne se chargent pas. Vérifie ta connexion, puis recharge la page.";
   });
   document.addEventListener("piafle:change", rendre);
-  addEventListener("resize", () => { if (!el.chant.hidden) dessinerOnde(); });
+  addEventListener("resize", () => { if (!el.chant.hidden) dessinerOnde(); placerPropositions(); });
 
   // ---------- Hauteur de l'écran ----------
 
@@ -545,12 +561,25 @@
   // Quand le clavier du téléphone s'ouvre, cette hauteur diminue ; on le
   // signale au CSS, qui ne garde alors que l'essentiel au-dessus du champ.
   const vue = window.visualViewport;
+  let repos = { largeur: 0, hauteur: 0 };   // zone visible sans clavier
+
+  function clavierOuvert() {
+    if (document.activeElement !== el.champ) return false;
+    // Safari iOS : la fenêtre garde sa hauteur, seule la zone visible rétrécit.
+    if (innerHeight - vue.height > 150) return true;
+    // Chrome iOS, Android : la fenêtre entière rétrécit avec le clavier ; on
+    // compare à la hauteur mesurée avant que le champ ait le focus.
+    return vue.width === repos.largeur && repos.hauteur - vue.height > 150;
+  }
+
   function ajusterHauteur() {
     const racine = document.documentElement;
+    if (document.activeElement !== el.champ) repos = { largeur: vue.width, hauteur: vue.height };
     racine.style.setProperty("--hauteur", vue.height + "px");
-    racine.classList.toggle("clavier-ouvert", document.activeElement === el.champ && innerHeight - vue.height > 150);
+    racine.classList.toggle("clavier-ouvert", clavierOuvert());
     if (scrollY || vue.offsetTop) scrollTo(0, 0);
     if (!el.chant.hidden) dessinerOnde();
+    placerPropositions();
   }
   // L'onde suit la largeur de son canevas, qui change avec l'agencement.
   if (window.ResizeObserver) new ResizeObserver(() => { if (!el.chant.hidden) dessinerOnde(); }).observe(el.sonogramme);
