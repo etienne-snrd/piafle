@@ -432,14 +432,21 @@
     majSelection();
   }
 
-  // La liste s'ouvre au-dessus du champ. Sa hauteur est limitée à la place
-  // visible au-dessus d'elle, pour que la première proposition ne sorte
-  // jamais de l'écran (elle défile au-delà).
+  // La liste s'ouvre au-dessus du champ, ou en dessous s'il y a nettement
+  // plus de place de ce côté-là. Sa hauteur est limitée à la place visible,
+  // pour que la première proposition ne sorte jamais de l'écran (elle
+  // défile au-delà).
   function placerPropositions() {
     if (el.propositions.hidden) return;
-    const haut = window.visualViewport ? visualViewport.offsetTop : 0;
-    const bas = el.propositions.getBoundingClientRect().bottom;
-    el.propositions.style.setProperty("--place", Math.max(80, Math.floor(bas - haut - 8)) + "px");
+    const v = window.visualViewport;
+    const haut = v ? v.offsetTop : 0;
+    const bas = haut + (v ? v.height : innerHeight);
+    const r = el.saisie.getBoundingClientRect();
+    const dessus = r.top + 4 - haut - 8;      // la liste déborde de 0.25rem sur la saisie
+    const dessous = bas - (r.bottom - 4) - 8;
+    const versLeBas = dessus < 200 && dessous > dessus;
+    el.propositions.classList.toggle("vers-le-bas", versLeBas);
+    el.propositions.style.setProperty("--place", Math.max(80, Math.floor(versLeBas ? dessous : dessus)) + "px");
   }
 
   function majSelection() {

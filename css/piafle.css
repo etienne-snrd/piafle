@@ -522,9 +522,10 @@ html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3
 .bouton-principal:hover { background: #9CC85A; }
 .bouton-principal:active { transform: translate(2px, 2px); box-shadow: inset 0 -4px 0 var(--mousse-fonce), 1px 1px 0 var(--encre); }
 
-/* Liste des noms proposés, au-dessus du champ. Elle passe devant les cadres
-   peints (z-index 10) ; --place, posé par ui.js, est la hauteur visible
-   au-dessus d'elle. */
+/* Liste des noms proposés, au-dessus du champ (en dessous s'il n'y a pas la
+   place, classe « vers-le-bas » posée par ui.js). Elle passe devant les
+   cadres peints (z-index 10) ; --place, posé par ui.js, est la hauteur
+   visible de son côté. */
 
 .propositions {
   position: absolute;
@@ -539,6 +540,7 @@ html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3
   box-shadow: 4px 4px 0 var(--nuit);
   padding: 0.25rem;
 }
+.propositions.vers-le-bas { bottom: auto; top: calc(100% - 0.25rem); }
 .proposition {
   display: flex;
   align-items: center;
@@ -607,6 +609,10 @@ html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3
 .clavier-ouvert .picto { display: none; }
 .clavier-ouvert .indice.indice-picto { padding: 0.25rem 0.5rem 0.3125rem; }
 .clavier-ouvert .partie > .indices { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+/* La partie descend juste au-dessus du clavier : la liste des propositions,
+   qui s'ouvre vers le haut, a toute la hauteur visible pour elle, même quand
+   la partie est courte (premier essai, avant la photo). */
+.clavier-ouvert .partie { margin-top: auto; }
 
 /* Écran moyen : pas la place d'un encart de chaque côté, la zone de jeu
    et l'encart se partagent la largeur. */
