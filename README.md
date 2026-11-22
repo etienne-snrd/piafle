@@ -48,9 +48,19 @@ js/
   cadre.js          cadres peints autour des panneaux (bois, branche, lierre)
   pictos.js         pictogrammes 8-bit des indices « taille » et « milieu »
   secours.js        affiche la page même si le décor ne démarre pas
+  mesure.js         mesure d'audience : envoie les essais faux et la fin de partie
 data/
   species.json      les 337 espèces du jeu
 polices/            polices pixel hébergées avec le site
+netlify/
+  functions/
+    evenement.mjs         reçoit et valide les événements (/api/evenement)
+    import-quotidien.mjs  verse chaque nuit les événements dans la base
+  lib/evenements.mjs      validation partagée par les deux fonctions
+  database/migrations/    tables de la base (Postgres)
+analytics/
+  requetes.sql      requêtes types pour lire les statistiques
+package.json        dépendances des fonctions Netlify (le site n'en a aucune)
 ```
 
 `jeu.js` ne touche pas à la page : il expose `window.Piafle` (`etat()`, `proposer()`, `suggestions()`, `partage()`) et émet l'événement `piafle:change` à chaque essai. `ui.js` et `effets.js` écoutent cet événement pour mettre l'écran à jour. La logique (`creerJeu()`) peut aussi être chargée dans Node.
@@ -78,6 +88,45 @@ Chaque entrée de `data/species.json` décrit une espèce :
 | `wikipedia` | lien et résumé de l'article |
 
 Pour ajouter une espèce, il suffit d'ajouter une entrée. Attention : changer la liste change aussi l'ordre de passage des oiseaux.
+
+## Mesure d'audience et vie privée
+
+Piafle mesure comment les joueurs s'en sortent (taux de réussite, oiseaux vraiment difficiles, confusions fréquentes), avec une solution maison, sans outil tiers. Le cadre visé est l'exemption de consentement de la CNIL pour la mesure d'audience : pas de cookie, pas d'identifiant, pas de bandeau.
+
+### Ce qui est collecté
+
+Deux événements, sans rien qui les relie entre eux ni à un joueur :
+
+| Événement | Quand | Champs |
+|---|---|---|
+| `erreur` | à chaque essai faux | n° du jour, oiseau à trouver, nom proposé |
+| `fin` | en fin de partie | n° du jour, oiseau, gagné ou perdu, nombre d'essais, chant écouté ou non, mobile ou ordinateur, n° de partie du joueur, série en cours |
+
+Le n° de partie et la série sont lus dans les statistiques que le navigateur garde déjà (`localStorage`). Ne sont **jamais** stockés : l'adresse IP, l'heure (seul le n° du jour est gardé), le navigateur. Les données ne sont ni vendues ni partagées et sont supprimées au bout de **25 mois**. Les données sont hébergées par Netlify, aux États-Unis (la région n'est pas au choix sur le plan Personal) ; Netlify garde l'adresse IP dans ses journaux techniques jusqu'à 7 jours. Tout cela est expliqué aux joueurs dans la fenêtre « À propos », en bas de page.
+
+Seule la formule par défaut (5 essais) est mesurée, et rien n'est envoyé en développement local.
+
+### Comment ça marche
+
+```
+js/mesure.js ──POST──▶ /api/evenement ──▶ Netlify Blobs (tampon)
+                                                 │ chaque nuit
+                                                 ▼
+                     DBeaver ◀──SQL── Netlify Database (Postgres)
+```
+
+- **Navigateur** (`js/mesure.js`) : écoute `piafle:change` et envoie en arrière-plan (`sendBeacon`, ou `fetch` avec `keepalive`). Une marque dans le `localStorage` évite tout doublon au rechargement. Un échec d'envoi est ignoré : le jeu n'attend jamais la mesure.
+- **Réception** (`/api/evenement`) : même domaine que le site, donc aucun changement de CSP. La fonction valide chaque lot : jour courant ou veille, oiseau du jour **recalculé côté serveur** avec `jeu.js` (le navigateur ne l'envoie pas), nom proposé parmi les 337 espèces, bornes et cohérence (perdu = 5 essais et série remise à zéro). Elle répond toujours `204`, lot accepté ou non. Une limite de débit Netlify bloque les envois en rafale.
+- **Tampon puis base** : les lots valides sont déposés dans Netlify Blobs. Une fonction planifiée les verse chaque nuit dans Netlify Database, puis vide le tampon. La base est facturée au temps où elle est éveillée : une seule écriture par jour la réveille une seule fois. Les prévisualisations de déploiement ont leur propre tampon et leur propre branche de base.
+- **Base** : Postgres standard (pilote `postgres`, migrations SQL dans `netlify/database/migrations/`), pour pouvoir changer d'hébergeur sans réécrire le code. Le paquet `@netlify/database` ne sert qu'à lire la chaîne de connexion, et indique à Netlify de relier la base au site (migrations appliquées à chaque déploiement, branche de base pour chaque prévisualisation).
+
+### Lire les statistiques
+
+`analytics/requetes.sql` contient une requête par question (réussite, répartition des essais, effet du chant, mobile contre ordinateur, difficulté réelle contre niveau attribué, confusions par oiseau, fidélité, séries). On les lance dans un client SQL comme DBeaver, avec la chaîne de connexion de la base (tableau de bord Netlify, rubrique *Database*). Chaque consultation réveille la base : mieux vaut regrouper ses requêtes, puis se déconnecter.
+
+### Couper la collecte
+
+Mettre la variable d'environnement `ANALYTICS_ACTIF` à `non` dans Netlify, puis redéployer : la fonction de réception ignore alors tout ce qu'elle reçoit.
 
 ## Crédits
 

@@ -11,7 +11,7 @@
     fiche: $("fiche"), ficheLien: $("fiche-wikipedia"),
     partager: $("partager"), partageLibelle: $("partage-libelle"), prochain: $("prochain"), credits: $("credits"),
     saisie: $("saisie"), champ: $("champ"), propositions: $("propositions"), message: $("saisie-message"),
-    aide: $("aide"), ouvrirAide: $("ouvrir-aide"), difficulte: $("difficulte"),
+    aide: $("aide"), ouvrirAide: $("ouvrir-aide"), apropos: $("apropos"), ouvrirApropos: $("ouvrir-apropos"), difficulte: $("difficulte"),
     chantTemps: $("chant-temps"),
   };
 
@@ -513,20 +513,23 @@
   // ---------- Aide ----------
 
   el.ouvrirAide.addEventListener("click", () => el.aide.showModal());
-  // Un clic en dehors de la fenêtre (sur le fond assombri) la ferme aussi.
+  el.ouvrirApropos.addEventListener("click", () => el.apropos.showModal());
+  // Un clic en dehors d'une fenêtre (sur le fond assombri) la ferme aussi.
   // Le clic doit commencer et finir dehors : sélectionner du texte en glissant
   // jusqu'au fond ne ferme rien.
-  const dehors = e => {
-    if (e.target !== el.aide) return false;
-    const r = el.aide.getBoundingClientRect();
-    return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-  };
-  let appuiDehors = false;
-  el.aide.addEventListener("pointerdown", e => { appuiDehors = dehors(e); });
-  el.aide.addEventListener("click", e => {
-    if (appuiDehors && dehors(e)) el.aide.close();
-    appuiDehors = false;
-  });
+  for (const fenetre of [el.aide, el.apropos]) {
+    const dehors = e => {
+      if (e.target !== fenetre) return false;
+      const r = fenetre.getBoundingClientRect();
+      return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+    };
+    let appuiDehors = false;
+    fenetre.addEventListener("pointerdown", e => { appuiDehors = dehors(e); });
+    fenetre.addEventListener("click", e => {
+      if (appuiDehors && dehors(e)) fenetre.close();
+      appuiDehors = false;
+    });
+  }
 
   // ---------- Rendu ----------
 

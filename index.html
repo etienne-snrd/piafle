@@ -106,11 +106,33 @@
     <form method="dialog" class="aide-fermer"><button class="bouton-entete" type="submit" title="Fermer" aria-label="Fermer"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M0 0h2v1h-2zM6 0h2v1h-2zM1 1h2v1h-2zM5 1h2v1h-2zM2 2h4v1h-4zM3 3h2v1h-2zM3 4h2v1h-2zM2 5h4v1h-4zM1 6h2v1h-2zM5 6h2v1h-2zM0 7h2v1h-2zM6 7h2v1h-2z"/></svg></button></form>
   </dialog>
 
+  <footer class="pied">
+    <button class="lien-pied" type="button" id="ouvrir-apropos" aria-haspopup="dialog">À propos</button>
+  </footer>
+
+  <dialog class="aide apropos" id="apropos" aria-labelledby="apropos-titre">
+    <h2 id="apropos-titre">À propos</h2>
+    <p>Piafle est un jeu gratuit, sans publicité ni compte.</p>
+    <p>Les photos viennent de Wikimedia Commons, les chants de Wikimedia Commons et de xeno-canto. L'auteur et la licence de chaque média sont affichés en fin de partie.</p>
+    <h3>Mesure d'audience</h3>
+    <p>Pour savoir quels oiseaux sont vraiment difficiles, Piafle enregistre, sans cookie ni identifiant :</p>
+    <ul>
+      <li>à chaque essai faux : le n° du jour, l'oiseau à trouver et le nom proposé ;</li>
+      <li>en fin de partie : le n° du jour, l'oiseau, gagné ou perdu, le nombre d'essais, si le chant a été écouté, téléphone ou ordinateur, ton nombre de parties jouées et ta série en cours.</li>
+    </ul>
+    <p>Ces deux derniers chiffres sont lus dans les statistiques que ton navigateur garde pour toi, avec ta partie en cours. Rien ne relie tes parties entre elles ni à toi : ni adresse IP, ni heure, ni navigateur ne sont enregistrés.</p>
+    <p>Ces données ne sont ni vendues ni partagées. Elles sont supprimées au bout de 25 mois.</p>
+    <p>Le site et ces données sont hébergés par Netlify, aux États-Unis. Ses journaux techniques gardent l'adresse IP des visiteurs jusqu'à 7 jours.</p>
+    <p>Le code du jeu est public : <a href="https://github.com/etienne-snrd/piafle" target="_blank" rel="noopener noreferrer">github.com/etienne-snrd/piafle</a>.</p>
+    <form method="dialog"><button class="bouton-principal" type="submit">Fermer</button></form>
+  </dialog>
+
   <script src="js/decor.js"></script>
   <script src="js/cadre.js"></script>
   <script src="js/pictos.js"></script>
   <script src="js/jeu.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/effets.js"></script>
+  <script src="js/mesure.js"></script>
 </body>
 </html>

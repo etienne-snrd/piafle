@@ -1,0 +1,13 @@
+{
+  "name": "piafle",
+  "private": true,
+  "description": "Dépendances des fonctions Netlify (analytics). Le site lui-même n'en a aucune.",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.1.9",
+    "@netlify/database": "^2.0.3",
+    "postgres": "^4.1.1"
+  }
+}
