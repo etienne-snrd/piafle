@@ -102,7 +102,7 @@ Deux événements, sans rien qui les relie entre eux ni à un joueur :
 | `erreur` | à chaque essai faux | n° du jour, oiseau à trouver, nom proposé |
 | `fin` | en fin de partie | n° du jour, oiseau, gagné ou perdu, nombre d'essais, chant écouté ou non, mobile ou ordinateur, n° de partie du joueur, série en cours |
 
-Le n° de partie et la série sont lus dans les statistiques que le navigateur garde déjà (`localStorage`). Ne sont **jamais** stockés : l'adresse IP, l'heure (seul le n° du jour est gardé), le navigateur. Les données ne sont ni vendues ni partagées et sont supprimées au bout de **25 mois**. Netlify garde l'adresse IP dans ses journaux techniques jusqu'à 7 jours. Tout cela est expliqué aux joueurs dans la fenêtre « À propos », en bas de page.
+Le n° de partie et la série sont lus dans les statistiques que le navigateur garde déjà (`localStorage`). Ne sont **jamais** stockés : l'adresse IP, l'heure (seul le n° du jour est gardé), le navigateur. Les données ne sont ni vendues ni partagées et sont supprimées au bout de **25 mois**. Les données sont hébergées par Netlify, aux États-Unis (la région n'est pas au choix sur le plan Personal) ; Netlify garde l'adresse IP dans ses journaux techniques jusqu'à 7 jours. Tout cela est expliqué aux joueurs dans la fenêtre « À propos », en bas de page.
 
 Seule la formule par défaut (5 essais) est mesurée, et rien n'est envoyé en développement local.
 
