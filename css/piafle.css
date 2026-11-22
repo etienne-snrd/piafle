@@ -598,6 +598,9 @@ html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3
 .aide ul { list-style: square; padding-left: 1.25rem; margin-bottom: 0.75rem; line-height: 1.55; }
 .aide a { color: inherit; text-decoration-color: var(--mousse-fonce); text-decoration-thickness: 2px; }
 .apropos h2 { padding-right: 0; }
+/* Le titre reçoit le focus à l'ouverture, pour que la fenêtre s'ouvre en
+   haut du texte plutôt que sur le bouton « Fermer », tout en bas. */
+.apropos h2:focus { outline: none; }
 
 /* Pied de page : petit panneau « À propos », posé dans le coin du décor. */
 
