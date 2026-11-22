@@ -9,10 +9,13 @@
  * Dans la même transaction : mise à jour de la table especes depuis
  * data/species.json, et suppression des lignes de plus de 25 mois.
  *
- * Seul le SQL standard de Postgres est utilisé (pilote postgres et variable
- * NETLIFY_DB_URL) : la base peut être déplacée chez un autre hébergeur.
+ * Seul le SQL standard de Postgres est utilisé, avec le pilote postgres : la
+ * base peut être déplacée chez un autre hébergeur en changeant seulement la
+ * chaîne de connexion. @netlify/database ne sert qu'à la lire ; sa présence
+ * dans package.json indique aussi à Netlify de relier la base au site.
  */
 import { getStore } from "@netlify/blobs";
+import { getConnectionString } from "@netlify/database";
 import postgres from "postgres";
 import { ESPECES, nomDuTampon, numeroDuJour } from "../lib/evenements.mjs";
 
@@ -67,7 +70,7 @@ export default async (req, context) => {
   const fins = lignes(evenements, "fin", ["jour", "oiseau", "gagne", "essais", "chant", "appareil", "anciennete", "serie"]);
   const erreurs = lignes(evenements, "erreur", ["jour", "oiseau", "propose"]);
 
-  const sql = postgres(process.env.NETLIFY_DB_URL, { max: 1 });
+  const sql = postgres(getConnectionString(), { max: 1 });
   try {
     await sql.begin(async (sql) => {
       await inserer(sql, "fins", fins);

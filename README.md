@@ -118,7 +118,7 @@ js/mesure.js ──POST──▶ /api/evenement ──▶ Netlify Blobs (tampon)
 - **Navigateur** (`js/mesure.js`) : écoute `piafle:change` et envoie en arrière-plan (`sendBeacon`, ou `fetch` avec `keepalive`). Une marque dans le `localStorage` évite tout doublon au rechargement. Un échec d'envoi est ignoré : le jeu n'attend jamais la mesure.
 - **Réception** (`/api/evenement`) : même domaine que le site, donc aucun changement de CSP. La fonction valide chaque lot : jour courant ou veille, oiseau du jour **recalculé côté serveur** avec `jeu.js` (le navigateur ne l'envoie pas), nom proposé parmi les 337 espèces, bornes et cohérence (perdu = 5 essais et série remise à zéro). Elle répond toujours `204`, lot accepté ou non. Une limite de débit Netlify bloque les envois en rafale.
 - **Tampon puis base** : les lots valides sont déposés dans Netlify Blobs. Une fonction planifiée les verse chaque nuit dans Netlify Database, puis vide le tampon. La base est facturée au temps où elle est éveillée : une seule écriture par jour la réveille une seule fois. Les prévisualisations de déploiement ont leur propre tampon et leur propre branche de base.
-- **Base** : Postgres standard (pilote `postgres`, variable `NETLIFY_DB_URL`, migrations SQL dans `netlify/database/migrations/`), pour pouvoir changer d'hébergeur sans réécrire le code.
+- **Base** : Postgres standard (pilote `postgres`, migrations SQL dans `netlify/database/migrations/`), pour pouvoir changer d'hébergeur sans réécrire le code. Le paquet `@netlify/database` ne sert qu'à lire la chaîne de connexion, et indique à Netlify de relier la base au site (migrations appliquées à chaque déploiement, branche de base pour chaque prévisualisation).
 
 ### Lire les statistiques
 
