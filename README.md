@@ -82,8 +82,6 @@ Chaque entrée de `data/species.json` décrit une espèce :
 | `milieu` | jardins, villes, forêts, campagnes, zones humides, littoral ou montagnes |
 | `difficulte` | 1 (facile), 2 (moyen) ou 3 (difficile) |
 | `comportement` | indice écrit sur le comportement |
-| `palette` | couleurs principales du plumage (formule `gros-plan`) |
-| `foyer` | point de zoom sur la photo, en % (`x`, `y`, `zoom`) |
 | `photos`, `sons` | médias (Wikimedia Commons, xeno-canto) avec auteur et licence |
 | `wikipedia` | lien et résumé de l'article |
 
@@ -104,7 +102,7 @@ Deux événements, sans rien qui les relie entre eux ni à un joueur :
 
 Le n° de partie et la série sont lus dans les statistiques que le navigateur garde déjà (`localStorage`). Ne sont **jamais** stockés : l'adresse IP, l'heure (seul le n° du jour est gardé), le navigateur. Les données ne sont ni vendues ni partagées et sont supprimées au bout de **25 mois**. Les données sont hébergées par Netlify, aux États-Unis (la région n'est pas au choix sur le plan Personal) ; Netlify garde l'adresse IP dans ses journaux techniques jusqu'à 7 jours. Tout cela est expliqué aux joueurs dans la fenêtre « À propos », en bas de page.
 
-Seule la formule par défaut (5 essais) est mesurée, et rien n'est envoyé en développement local.
+Rien n'est envoyé en développement local.
 
 ### Comment ça marche
 

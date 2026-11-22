@@ -29,33 +29,19 @@
   const GRAINE = 20261109;
   const ADRESSE_JEU = "https://piafle.netlify.app/";
 
-  // Déroulés possibles des indices (« formules »). L'étape n s'applique après
-  // n essais ratés : les indices écrits s'ajoutent les uns aux autres ;
-  // « photo » remplace la photo montrée jusque-là.
-  //   vue : "entiere" (photo entière) ou "gros-plan" (zoom sur le foyer)
-  //   pixels : nombre de gros pixels sur la largeur, 0 = photo nette
-  const FORMULES = {
-    // Par défaut (5 essais) : le chant seul, puis la photo entière de moins
-    // en moins pixelisée, jusqu'à la photo nette.
-    pixels: [
-      { indices: ["chant"] },
-      { indices: ["taille", "milieu"], photo: { vue: "entiere", pixels: 16 } },
-      { indices: ["comportement"], photo: { vue: "entiere", pixels: 32 } },
-      { photo: { vue: "entiere", pixels: 48 } },
-      { photo: { vue: "entiere", pixels: 0 } },
-    ],
-    // Variante à 6 essais avec gros plan, choisie par ?formule=gros-plan.
-    "gros-plan": [
-      { indices: ["chant"] },
-      { indices: ["taille", "milieu", "palette"] },
-      { photo: { vue: "gros-plan", pixels: 28 } },
-      { indices: ["comportement"] },
-      { photo: { vue: "entiere", pixels: 0 } },
-      {},
-    ],
-  };
-  const FORMULE_PAR_DEFAUT = "pixels";
-  // Le nombre d'essais d'une partie est la longueur de sa formule.
+  // Déroulé des indices : l'étape n s'applique après n essais ratés. Les
+  // indices écrits s'ajoutent les uns aux autres ; « pixels » remplace la
+  // photo montrée jusque-là (nombre de gros pixels sur la largeur, 0 = photo
+  // nette). Le chant seul, puis la photo de moins en moins pixelisée.
+  const ETAPES = [
+    { indices: ["chant"] },
+    { indices: ["taille", "milieu"], pixels: 16 },
+    { indices: ["comportement"], pixels: 32 },
+    { pixels: 48 },
+    { pixels: 0 },
+  ];
+  // Une étape par essai.
+  const ESSAIS_MAX = ETAPES.length;
 
   // Grandes catégories d'oiseaux, montrées dans l'historique des essais
   // (« même catégorie : passereaux »). On part de l'ordre ; quelques groupes
@@ -194,10 +180,6 @@
     }
   }
 
-  // Lecture d'une clé propre à l'objet (pas « constructor » ni « __proto__ »,
-  // hérités de tous les objets) : protège les réglages lus dans l'adresse.
-  const aCle = (objet, cle) => Object.prototype.hasOwnProperty.call(objet, cle);
-
   /** Média avec des crédits toujours affichables. */
   function credite(media) {
     if (!media || !urlMedia(media.url)) return null;
@@ -247,8 +229,6 @@
         return { type, libelle: "Milieu", valeur: mystere.milieu };
       case "comportement":
         return mystere.comportement ? { type, libelle: "Comportement", valeur: mystere.comportement } : null;
-      case "palette":
-        return mystere.palette && mystere.palette.length ? { type, libelle: "Couleurs", valeur: mystere.palette.slice(0, 3) } : null;
       case "famille":
         return { type, libelle: "Famille", valeur: nomFamille(mystere) };
       default:
@@ -287,9 +267,8 @@
     }
   }
 
-  // repartition : parties gagnées en 1, 2… essais ; 6 cases, assez pour
-  // toutes les formules.
-  const STATS_VIDES = { joues: 0, gagnes: 0, serie: 0, meilleureSerie: 0, repartition: [0, 0, 0, 0, 0, 0], dernierJour: null };
+  // repartition : parties gagnées en 1, 2… essais.
+  const STATS_VIDES = { joues: 0, gagnes: 0, serie: 0, meilleureSerie: 0, repartition: [0, 0, 0, 0, 0], dernierJour: null };
 
   // ------------------------------------------------------------------
   // Le jeu
@@ -302,9 +281,7 @@
    *                simuler un autre jour)
    *   stockage   : objet type localStorage
    */
-  function creerJeu({ especes, maintenant = () => new Date(), stockage = stockageMemoire(), formule = FORMULE_PAR_DEFAUT }) {
-    const etapesFormule = aCle(FORMULES, formule) ? FORMULES[formule] : FORMULES[FORMULE_PAR_DEFAUT];
-    const ESSAIS_MAX = etapesFormule.length;
+  function creerJeu({ especes, maintenant = () => new Date(), stockage = stockageMemoire() }) {
     const parNom = new Map(especes.map((e) => [normaliser(e.nom_fr), e]));
     const date = dateDuJour(maintenant());
     const numero = Math.max(1, joursEntre(DATE_LANCEMENT, date) + 1); // avant le lancement : jour n°1
@@ -340,15 +317,14 @@
       const rates = noms.filter((n) => normaliser(n) !== normaliser(mystere.nom_fr)).length;
       // Sans enregistrement (rare), les indices écrits arrivent dès le début.
       const sansSon = !(mystere.sons && mystere.sons.length);
-      const etapes = fini ? etapesFormule.length : Math.min(rates + 1 + (sansSon ? 1 : 0), etapesFormule.length);
-      const montrees = etapesFormule.slice(0, etapes);
+      const etapes = fini ? ETAPES.length : Math.min(rates + 1 + (sansSon ? 1 : 0), ETAPES.length);
+      const montrees = ETAPES.slice(0, etapes);
       const reveles = montrees.flatMap((e) => e.indices || []);
       const chantRevele = fini || reveles.includes("chant");
-      // La dernière photo annoncée l'emporte ; en fin de partie, photo entière nette.
-      const vuePhoto = fini ? { vue: "entiere", pixels: 0 } : montrees.reduce((p, e) => e.photo || p, null);
-      // Code lu par ui.js et le CSS (data-recadrage) : -1 pas de photo,
-      // 0 gros plan, 2 photo entière.
-      const recadrage = !vuePhoto ? -1 : vuePhoto.vue === "gros-plan" ? 0 : 2;
+      // La photo apparaît à la première étape qui en parle ; la dernière
+      // pixelisation annoncée l'emporte. En fin de partie, photo nette.
+      const avecPhoto = fini || montrees.some((e) => "pixels" in e);
+      const pixels = fini ? 0 : montrees.reduce((p, e) => ("pixels" in e ? e.pixels : p), 0);
       return {
         date,
         numero,
@@ -357,13 +333,9 @@
         essais: essais(),
         difficulte: difficulte(mystere),
         indices: reveles.map((type) => indice(type, mystere)).filter(Boolean),
-        recadrage,
-        vue: vuePhoto ? vuePhoto.vue : null,
-        pixels: vuePhoto ? vuePhoto.pixels : 0,
-        pixelise: !!(vuePhoto && vuePhoto.pixels),
-        // Point de zoom choisi à la main (en %), sinon le centre de la photo.
-        foyer: mystere.foyer || null,
-        photo: recadrage >= 0 ? credite(mystere.photos && mystere.photos[0]) : null,
+        pixels,
+        pixelise: pixels > 0,
+        photo: avecPhoto ? credite(mystere.photos && mystere.photos[0]) : null,
         son: chantRevele ? credite(mystere.sons && mystere.sons[0]) : null,
         oiseau: fini ? mystere : null,
         stats: stats(),
@@ -439,7 +411,7 @@
   // Branchement dans la page
   // ------------------------------------------------------------------
 
-  const outils = { FORMULES, categorie, normaliser, dateDuJour, joursEntre, oiseauDuJour, comparerTailles, DATE_LANCEMENT };
+  const outils = { ESSAIS_MAX, categorie, normaliser, dateDuJour, joursEntre, oiseauDuJour, comparerTailles, DATE_LANCEMENT };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = { creerJeu, ...outils };
@@ -483,9 +455,7 @@
   }
 
   Piafle.pret = chargerEspeces().then((especes) => {
-    // ?formule=<nom> choisit une autre clé de FORMULES.
-    const formule = new URLSearchParams(global.location ? global.location.search : "").get("formule") || FORMULE_PAR_DEFAUT;
-    jeu = creerJeu({ especes, stockage, formule });
+    jeu = creerJeu({ especes, stockage });
     document.dispatchEvent(new CustomEvent("piafle:change", { detail: jeu.etat() }));
     return jeu.etat();
   });
