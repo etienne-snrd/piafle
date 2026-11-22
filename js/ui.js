@@ -36,61 +36,41 @@
 
   // ---------- Lucarne ----------
 
-  const ZOOM_GROS_PLAN = 2.4;
   // Nombre de gros pixels sur la largeur, ou 0 pour la vraie photo. Le
-  // déroulé des indices (js/jeu.js, FORMULES) le fixe à chaque étape.
+  // déroulé des indices (js/jeu.js, ETAPES) le fixe à chaque étape.
   const pixelsPour = etat => etat.pixels || 0;
 
   // Le cadre prend le format de la photo, dans ces limites (largeur / hauteur).
   const FORMAT_MIN = 0.8, FORMAT_MAX = 1.78;
   let formatPhoto = null;
 
-  /**
-   * Règle le cadre et le gros plan. Le point de zoom (champ « foyer » de
-   * data/species.json) est donné en % de la photo entière ; on le convertit
-   * en % du cadre, puis on le centre sans jamais laisser voir le bord de la
-   * photo.
-   */
+  /** Donne au cadre le format de la photo, puis la pixelise si besoin. */
   function cadrer(etat, format) {
     if (format) formatPhoto = format;
     const r = formatPhoto || 4 / 3;
     const cadre = Math.min(FORMAT_MAX, Math.max(FORMAT_MIN, r));
-    // Part de la photo visible dans le cadre (rogné seulement hors limites).
-    const vx = r > cadre ? cadre / r : 1, vy = r < cadre ? r / cadre : 1;
-    const f = etat.foyer || { x: 50, y: 45 };
-    const zoom = etat.recadrage === 2 ? 1 : (f.zoom || ZOOM_GROS_PLAN);
-    const borne = v => Math.min(100 - 50 / zoom, Math.max(50 / zoom, v));
-    const x = zoom > 1 ? borne(50 + (f.x - 50) / vx) : 50;
-    const y = zoom > 1 ? borne(50 + (f.y - 50) / vy) : 50;
-    const s = el.lucarne.style;
-    s.setProperty("--format", cadre);
+    el.lucarne.style.setProperty("--format", cadre);
     el.partie.style.setProperty("--format", cadre);
-    s.setProperty("--zoom", zoom);
-    s.setProperty("--foyer-x", x + "%");
-    s.setProperty("--foyer-y", y + "%");
-    s.setProperty("--decal-x", 50 - x + "%");
-    s.setProperty("--decal-y", 50 - y + "%");
     const colonnes = pixelsPour(etat);
-    if (colonnes) pixeliser({ r, cadre, x, y, zoom, colonnes });
+    if (colonnes) pixeliser({ r, cadre, colonnes });
   }
 
   /**
-   * Dessine la zone visible du gros plan dans un canevas de quelques dizaines
-   * de pixels de large ; le CSS l'agrandit sans lissage (image-rendering:
-   * pixelated). Les couleurs restent celles de la photo.
+   * Dessine la partie de la photo visible dans le cadre dans un canevas de
+   * quelques dizaines de pixels de large ; le CSS l'agrandit sans lissage
+   * (image-rendering: pixelated). Les couleurs restent celles de la photo.
    */
-  function pixeliser({ r, cadre, x, y, zoom, colonnes }) {
+  function pixeliser({ r, cadre, colonnes }) {
     const img = el.photo;
     if (!img.complete || !img.naturalWidth) return; // redessiné au chargement
     // Taille de la photo affichée (object-fit: cover) dans un cadre de
     // largeur « cadre » et de hauteur 1.
     const largeur = r > cadre ? r : cadre, hauteur = largeur / r;
     const decalX = (cadre - largeur) / 2, decalY = (1 - hauteur) / 2;
-    // Zone visible après le zoom, puis la même zone en pixels de la photo.
-    const zx = x / 100 * cadre - cadre / (2 * zoom), zy = y / 100 - 1 / (2 * zoom);
+    // Zone visible (le cadre entier), en pixels de la photo.
     const ech = img.naturalWidth / largeur;
-    const sx = (zx - decalX) * ech, sy = (zy - decalY) * ech;
-    const sw = cadre / zoom * ech, sh = 1 / zoom * ech;
+    const sx = -decalX * ech, sy = -decalY * ech;
+    const sw = cadre * ech, sh = ech;
     const c = el.pixels, lignes = Math.max(1, Math.round(colonnes / cadre));
     c.width = colonnes; c.height = lignes;
     const ctx = c.getContext("2d");
@@ -110,8 +90,8 @@
       el.photo.dataset.url = p.url;
       el.photo.classList.remove("est-chargee");
       el.photo.onload = () => {
-        // Le format exact n'est connu, et le gros plan pixelisé ne peut être
-        // dessiné, qu'une fois la photo chargée.
+        // Le format exact n'est connu, et la photo pixelisée ne peut être
+        // dessinée, qu'une fois la photo chargée.
         cadrer(Piafle.etat(), p.largeur && p.hauteur ? null : el.photo.naturalWidth / el.photo.naturalHeight);
         el.photo.classList.add("est-chargee");
         el.lucarne.classList.remove("en-erreur");
@@ -119,11 +99,10 @@
       el.photo.onerror = () => el.lucarne.classList.add("en-erreur");
       el.photo.src = p.url;
     }
-    el.lucarne.dataset.recadrage = String(etat.recadrage);
     el.lucarne.dataset.pixelise = String(pixelsPour(etat) > 0);
     el.photo.alt = etat.oiseau
       ? `${etat.oiseau.nom_fr}, photo entière`
-      : `L'oiseau mystère, ${etat.vue === "gros-plan" ? "vu de près" : "photo entière"}${etat.pixelise ? ", pixelisée" : ""}`;
+      : `L'oiseau mystère, photo entière${etat.pixelise ? ", pixelisée" : ""}`;
   }
 
   function lienCredit(m) {
@@ -170,10 +149,6 @@
   }
 
   function valeurIndice(ind) {
-    if (ind.type === "palette") {
-      return `<span class="palette">${ind.valeur.map(c => `<i style="background:${echapper(c)}"></i>`).join("")}</span>
-        <span class="visuellement-cache">${ind.valeur.length} couleurs principales du plumage</span>`;
-    }
     return echapper(majuscule(ind.valeur));
   }
 

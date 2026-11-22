@@ -5,12 +5,10 @@
 #  - upload.wikimedia.org : photos et chants (Wikimedia Commons)
 #  - xeno-canto.org       : chants
 #  - script-src 'self' : aucun script inline ; tout script est un fichier .js.
-#  - style-src-attr 'unsafe-inline' : couleurs de la palette (formule
-#    ?formule=gros-plan) posées en attribut style. Ne permet aucun script.
 #  - font-src 'self' : toutes les polices sont dans polices/.
 
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://upload.wikimedia.org; media-src https://upload.wikimedia.org https://xeno-canto.org; connect-src 'self' https://upload.wikimedia.org https://xeno-canto.org; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https://upload.wikimedia.org; media-src https://upload.wikimedia.org https://xeno-canto.org; connect-src 'self' https://upload.wikimedia.org https://xeno-canto.org; manifest-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY

@@ -20,8 +20,6 @@
 
   const ADRESSE = "/api/evenement";
   const CLE = "piafle:mesure";
-  // Seule la formule par défaut, à 5 essais, est mesurée.
-  const ESSAIS_MESURES = 5;
 
   // Rien n'est envoyé en développement local (ni fichier, ni localhost).
   const hote = location.hostname;
@@ -86,7 +84,7 @@
   }
 
   function mesurer(etat) {
-    if (!etat || etat.essaisMax !== ESSAIS_MESURES) return;
+    if (!etat) return;
     const marque = lireMarque(etat.numero);
     const liste = evenements(etat, marque);
     if (liste.length <= marque.envoyes) return;

@@ -8,8 +8,7 @@
 import jeu from "../../js/jeu.js";
 import especes from "../../data/species.json" with { type: "json" };
 
-// Seule la formule par défaut du jeu est mesurée : 5 essais.
-export const ESSAIS_MAX = jeu.FORMULES.pixels.length;
+export const ESSAIS_MAX = jeu.ESSAIS_MAX;
 // Au plus un événement « erreur » par essai raté, plus l'événement « fin ».
 export const EVENEMENTS_MAX = ESSAIS_MAX + 1;
 export const APPAREILS = ["mobile", "ordinateur"];

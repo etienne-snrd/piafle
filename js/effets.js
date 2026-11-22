@@ -25,7 +25,7 @@
     const noms = indicesEcrits(b).slice(indicesEcrits(a).length).map(i => i.libelle.toLowerCase());
     if (!a.son && b.son) noms.push("chant");
     if (b.photo && !a.photo) noms.push(b.pixels ? "photo pixelisée" : "photo");
-    else if (b.photo && (a.pixels !== b.pixels || a.vue !== b.vue)) noms.push(b.pixels ? "photo plus nette" : "photo nette");
+    else if (b.photo && a.pixels !== b.pixels) noms.push(b.pixels ? "photo plus nette" : "photo nette");
     return noms;
   }
 
