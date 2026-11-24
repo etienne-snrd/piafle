@@ -14,12 +14,43 @@
  *
  * L'envoi part en arrière-plan et tout échec est ignoré : la mesure ne doit
  * jamais gêner le jeu. Hors ligne, l'événement est perdu.
+ *
+ * Le joueur peut refuser la mesure avec la case « Mesurer mes parties » de
+ * la fenêtre « À propos » : son choix est gardé dans le localStorage et plus
+ * rien n'est envoyé depuis ce navigateur.
  */
 (function () {
   "use strict";
 
   const ADRESSE = "/api/evenement";
   const CLE = "piafle:mesure";
+  const CLE_REFUS = "piafle:mesure-refusee";
+  // Refus valable pour cette visite, si le localStorage est bloqué.
+  let sessionRefus = false;
+
+  function refusee() {
+    try {
+      return localStorage.getItem(CLE_REFUS) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Case de la fenêtre « À propos ». Branchée avant le test ci-dessous pour
+  // fonctionner aussi en développement local.
+  const caseMesure = document.getElementById("mesure-active");
+  if (caseMesure) {
+    caseMesure.checked = !refusee();
+    caseMesure.addEventListener("change", () => {
+      try {
+        if (caseMesure.checked) localStorage.removeItem(CLE_REFUS);
+        else localStorage.setItem(CLE_REFUS, "1");
+      } catch (e) {
+        /* stockage bloqué : le choix vaut pour cette visite seulement */
+        sessionRefus = !caseMesure.checked;
+      }
+    });
+  }
 
   // Rien n'est envoyé en développement local (ni fichier, ni localhost).
   const hote = location.hostname;
@@ -89,9 +120,11 @@
     const liste = evenements(etat, marque);
     if (liste.length <= marque.envoyes) return;
     // La marque est posée avant l'envoi : un échec n'est jamais retenté.
+    // Après un refus, elle avance aussi : réactiver la mesure n'envoie pas
+    // les essais joués pendant le refus.
     const nouveaux = liste.slice(marque.envoyes);
     ecrireMarque({ ...marque, envoyes: liste.length });
-    envoyer(nouveaux);
+    if (!refusee() && !sessionRefus) envoyer(nouveaux);
   }
 
   document.addEventListener("piafle:change", () => mesurer(Piafle.etat()));

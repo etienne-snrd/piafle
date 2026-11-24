@@ -32,6 +32,8 @@ export function oiseauDuJour(jour) {
   return jeu.oiseauDuJour(especes, jour).nom_fr;
 }
 
+// Plus grand entier d'une colonne integer de Postgres.
+const INT_MAX = 2147483647;
 const entier = (v, min, max = Number.MAX_SAFE_INTEGER) => Number.isInteger(v) && v >= min && v <= max;
 const booleen = (v) => typeof v === "boolean";
 
@@ -44,7 +46,9 @@ function cles(objet, attendues) {
 function validerFin(e, oiseau) {
   if (!cles(e, ["type", "jour", "gagne", "essais", "chant", "appareil", "anciennete", "serie"])) return null;
   if (!booleen(e.gagne) || !booleen(e.chant) || !APPAREILS.includes(e.appareil)) return null;
-  if (!entier(e.essais, 1, ESSAIS_MAX) || !entier(e.anciennete, 1) || !entier(e.serie, 0, e.anciennete)) return null;
+  // Une partie par jour au plus : l'ancienneté ne peut pas dépasser le
+  // nombre de jours écoulés depuis le lancement.
+  if (!entier(e.essais, 1, ESSAIS_MAX) || !entier(e.anciennete, 1, e.jour) || !entier(e.serie, 0, e.anciennete)) return null;
   // Une partie perdue use tous les essais et remet la série à zéro ;
   // une partie gagnée prolonge la série.
   if (e.gagne ? e.serie < 1 : e.essais !== ESSAIS_MAX || e.serie !== 0) return null;
@@ -85,6 +89,26 @@ export function validerLot(corps, maintenant = new Date()) {
   if (valides.includes(null)) return null;
   if (valides.filter((e) => e.type === "fin").length > 1) return null;
   return valides;
+}
+
+/**
+ * Prépare un événement lu dans le tampon pour l'insertion en base. Le lot a
+ * été validé à la réception, mais l'import revérifie chaque valeur : une
+ * seule valeur refusée par la base ferait échouer tout l'import du jour.
+ * Renvoie null si l'événement est invalide.
+ */
+export function ligneEnBase(e) {
+  if (!e || typeof e !== "object" || !entier(e.jour, 1, INT_MAX) || !NOMS.has(e.oiseau)) return null;
+  if (e.type === "erreur") {
+    if (!NOMS.has(e.propose)) return null;
+    return { type: e.type, jour: e.jour, oiseau: e.oiseau, propose: e.propose };
+  }
+  if (e.type !== "fin") return null;
+  if (!booleen(e.gagne) || !booleen(e.chant) || !APPAREILS.includes(e.appareil)) return null;
+  // Bornes des colonnes integer de Postgres.
+  if (!entier(e.essais, 1, ESSAIS_MAX) || !entier(e.anciennete, 1, INT_MAX) || !entier(e.serie, 0, e.anciennete)) return null;
+  const { type, jour, oiseau, gagne, essais, chant, appareil, anciennete, serie } = e;
+  return { type, jour, oiseau, gagne, essais, chant, appareil, anciennete, serie };
 }
 
 /**

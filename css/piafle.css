@@ -591,6 +591,9 @@ html[data-moment="nuit"] { --blanc-bouton: #DCE2EA; --blanc-bouton-survol: #CBD3
 .aide ul { list-style: square; padding-left: 1.25rem; margin-bottom: 0.75rem; line-height: 1.55; }
 .aide a { color: inherit; text-decoration-color: var(--mousse-fonce); text-decoration-thickness: 2px; }
 .apropos h2 { padding-right: 0; }
+.option-mesure { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; cursor: pointer; }
+.option-mesure input { width: 1.125rem; height: 1.125rem; margin: 0; accent-color: var(--mousse-fonce); cursor: pointer; }
+.aide .option-aide { margin-top: 0.25rem; font-size: 0.875rem; color: var(--encre-douce); }
 /* Le titre reçoit le focus à l'ouverture, pour que la fenêtre s'ouvre en
    haut du texte plutôt que sur le bouton « Fermer », tout en bas. */
 .apropos h2:focus { outline: none; }
