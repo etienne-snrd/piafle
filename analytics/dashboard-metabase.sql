@@ -1,7 +1,11 @@
 -- Requêtes du dashboard Metabase de Piafle, une par carte.
 --
--- Chaque requête se colle dans une question SQL native de Metabase. Le
--- titre de la carte et la visualisation conseillée sont indiqués au-dessus.
+-- Chaque requête se colle dans une question SQL native de Metabase :
+-- « + Nouveau » › « Requête SQL », puis choisir la base (pas une table).
+-- L'éditeur graphique « Question », qui demande de choisir une table, ne
+-- sert pas ici : une requête SQL lit elle-même les tables qu'elle nomme.
+-- Au-dessus de chaque requête : titre de la carte, tables lues et
+-- visualisation conseillée.
 --
 -- Filtre facultatif {{depuis}} : variable de type « Date » dans Metabase.
 -- Le bloc [[ … ]] est ignoré tant que le filtre est vide.
@@ -19,6 +23,7 @@
 -- ===================================================================
 
 -- A1. Parties hier
+-- Tables : fins.
 -- Visualisation : Nombre.
 SELECT count(*) AS parties_hier
 FROM fins
@@ -26,6 +31,7 @@ WHERE jour = (now() AT TIME ZONE 'Europe/Paris')::date - DATE '2026-11-08' - 1;
 
 
 -- A2. Les 7 derniers jours, comparés aux 7 précédents
+-- Tables : fins.
 -- Visualisation : Tendance (une carte par indicateur : parties, réussite,
 -- essais moyens, part mobile, part chant). La ligne la plus récente est
 -- comparée à la précédente.
@@ -45,6 +51,7 @@ ORDER BY 1;
 
 
 -- A3. Santé de l'import : dernier jour en base
+-- Tables : fins.
 -- Visualisation : Tableau. « jours_de_retard » doit valoir 1 : au-delà,
 -- l'import de la nuit n'a pas tourné.
 SELECT date_du_jour(max(jour)) AS dernier_jour_en_base,
@@ -53,6 +60,7 @@ FROM fins;
 
 
 -- A4. Santé de l'import : lots reçus par jour (30 derniers jours)
+-- Tables : lots_importes.
 -- Visualisation : Barres. Un lot correspond à un envoi d'un joueur ; un
 -- jour à zéro signale une panne de la collecte ou de l'import.
 SELECT date_du_jour(jour) AS date, count(*) AS lots
@@ -68,6 +76,7 @@ ORDER BY jour;
 -- sont aussi le nombre de joueurs actifs ce jour-là.
 
 -- B1. Parties par jour, selon l'ancienneté du joueur
+-- Tables : fins.
 -- Visualisation : Barres empilées (x : date, série : anciennete).
 -- La hauteur totale donne les joueurs actifs du jour.
 SELECT date_du_jour(jour) AS date,
@@ -86,6 +95,7 @@ ORDER BY jour, min(anciennete);
 
 
 -- B2. Taux de retour
+-- Tables : fins.
 -- Visualisation : Ligne. Joueurs déjà venus actifs ce jour-là, rapportés
 -- aux joueurs connus avant ce jour (actifs du premier jour mesuré, plus
 -- les premières parties depuis). Sans identifiant, c'est une estimation :
@@ -118,6 +128,7 @@ ORDER BY jour;
 
 
 -- B3. Séries de victoires en cours (7 derniers jours)
+-- Tables : fins.
 -- Visualisation : Barres. Série en cours à la fin de la partie : 0 après
 -- une défaite.
 SELECT CASE
@@ -141,6 +152,7 @@ ORDER BY min(serie);
 -- ===================================================================
 
 -- C1. Réussite par jour, avec l'oiseau du jour
+-- Tables : fins et especes.
 -- Visualisation : Combo (barres : parties, ligne : reussite_pct) ou
 -- Tableau pour lire le nom de l'oiseau.
 SELECT date_du_jour(f.jour) AS date,
@@ -158,6 +170,7 @@ ORDER BY f.jour;
 
 
 -- C2. Répartition des parties : trouvé à quel essai, et grâce à quel indice
+-- Tables : fins.
 -- Visualisation : Barres. Essai 1 : le chant seul ; 2 : taille, milieu et
 -- photo très pixelisée ; 3 : comportement et photo moins pixelisée ;
 -- 4 : photo plus nette ; 5 : photo nette.
@@ -179,6 +192,7 @@ ORDER BY 1;
 
 
 -- C3. Effet du chant
+-- Tables : fins.
 -- Visualisation : Barres (x : chant_ecoute, y : reussite_pct).
 SELECT CASE WHEN chant THEN 'chant écouté' ELSE 'chant non écouté' END AS chant_ecoute,
        count(*) AS parties,
@@ -192,6 +206,7 @@ ORDER BY chant DESC;
 
 
 -- C4. Mobile contre ordinateur
+-- Tables : fins.
 -- Visualisation : Barres (x : appareil, y : reussite_pct).
 SELECT appareil,
        count(*) AS parties,
